@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: identity-service
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
