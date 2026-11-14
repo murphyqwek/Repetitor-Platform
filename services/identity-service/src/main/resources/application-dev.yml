@@ -17,6 +17,10 @@ spring:
         shutdown-timeout: 2s
 
 identity:
+  cleanup:
+    expired-codes:
+      cron: "0 0 3 * * *"
+      zone: Europe/Minsk
   security:
     cookies:
       secure: false

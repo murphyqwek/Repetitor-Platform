@@ -8,10 +8,17 @@ spring:
       port: ${REDIS_PORT}
       password: ${REDIS_PASSWORD}
       connect-timeout: 2s
+      timeout: 2s
       lettuce:
         shutdown-timeout: 2s
 
 identity:
+  invitations:
+    idempotency-ttl: 15m
+  cleanup:
+    expired-codes:
+      cron: "0 0 3 * * *"
+      zone: Europe/Minsk
   security:
     cookies:
       secure: true

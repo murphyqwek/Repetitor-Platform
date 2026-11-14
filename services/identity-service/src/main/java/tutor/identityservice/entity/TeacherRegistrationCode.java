@@ -19,7 +19,7 @@ public class TeacherRegistrationCode {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "code_hash", nullable = false, columnDefinition = "text")
+    @Column(name = "code_hash", nullable = false, unique = true, columnDefinition = "text")
     private String codeHash;
 
     @Column(name = "created_at", nullable = false, updatable = false,
