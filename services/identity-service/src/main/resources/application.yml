@@ -2,8 +2,20 @@ spring:
   application:
     name: identity-service
 
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+      connect-timeout: 2s
+      lettuce:
+        shutdown-timeout: 2s
+
 identity:
   security:
+    cookies:
+      secure: true
+    refreshTtl: 7d
     jwt:
       public-key-path: ${JWT_PUBLIC_KEY_PATH}
       private-key-path: ${JWT_PRIVATE_KEY_PATH}

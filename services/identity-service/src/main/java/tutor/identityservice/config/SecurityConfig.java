@@ -6,6 +6,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -32,6 +36,7 @@ public class SecurityConfig {
             HttpSecurity http,
             BearerTokenResolver bearerTokenResolver,
             JwtAuthenticationConverter jwtAuthenticationConverter,
+            CookieCsrfTokenRepository csrfTokenRepository,
             Environment environment
     ) throws Exception {
         http
@@ -42,7 +47,7 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .requestCache(cache -> cache.disable())
                 .csrf(csrf -> csrf
-                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                        .csrfTokenRepository(csrfTokenRepository)
                         .spa())
                 .authorizeHttpRequests(auth -> {
                     auth.requestMatchers(authenticationEndpoints()).permitAll();
@@ -68,6 +73,21 @@ public class SecurityConfig {
                                 writeError(response, 403, "Forbidden")));
 
         return http.build();
+    }
+
+    @Bean
+    public CookieCsrfTokenRepository csrfTokenRepository() {
+        return CookieCsrfTokenRepository.withHttpOnlyFalse();
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(
+            UserDetailsService userDetailsService,
+            PasswordEncoder passwordEncoder
+    ) {
+        var provider = new DaoAuthenticationProvider(userDetailsService);
+        provider.setPasswordEncoder(passwordEncoder);
+        return new ProviderManager(provider);
     }
 
     @Bean
