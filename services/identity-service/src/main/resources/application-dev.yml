@@ -7,6 +7,14 @@ spring:
     username: ${POSTGRES_USER}
     password: ${POSTGRES_PASSWORD}
 
+identity:
+  security:
+    jwt:
+      public-key-path: ${JWT_PUBLIC_KEY_PATH}
+      issuer: ${JWT_ISSUER:rp-identity}
+      private-key-path: ${JWT_PRIVATE_KEY_PATH}
+      ttl: 15m
+
 springdoc:
   api-docs:
     enabled: true

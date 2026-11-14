@@ -2,6 +2,14 @@ spring:
   application:
     name: identity-service
 
+identity:
+  security:
+    jwt:
+      public-key-path: ${JWT_PUBLIC_KEY_PATH}
+      private-key-path: ${JWT_PRIVATE_KEY_PATH}
+      issuer: ${JWT_ISSUER:rp-identity}
+      ttl: 15m
+
 springdoc:
   api-docs:
     enabled: false
