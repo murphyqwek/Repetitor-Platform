@@ -20,6 +20,7 @@ identity:
       cron: "0 0 3 * * *"
       zone: Europe/Minsk
   security:
+    student-credentials-key: ${STUDENT_CREDENTIALS_KEY}
     cookies:
       secure: true
     refreshTtl: 7d

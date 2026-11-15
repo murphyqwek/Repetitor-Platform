@@ -13,6 +13,8 @@ public record RegistrateDTO(
         String password,
 
         @NotBlank(message = "Код приглашения обязателен")
-        String invitationCode
+        String invitationCode,
+
+        @NotBlank @Size(max = 100) String policyVersion
 ) {
 }

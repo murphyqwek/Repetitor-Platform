@@ -9,25 +9,62 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.web.bind.annotation.*;
 import tutor.identityservice.dto.LoginDTO;
+import tutor.identityservice.dto.RegistrateDTO;
+import tutor.identityservice.dto.TeacherRegistrationDTO;
 import tutor.identityservice.service.AuthService;
 import tutor.identityservice.service.CookieService;
-import tutor.identityservice.service.RefreshTokenService;
-import tutor.identityservice.service.UserService;
+import tutor.identityservice.service.CreateUserService;
+import tutor.identityservice.service.TeacherRegistrationCodeService;
 
 @RestController
 @RequestMapping("/api/v1/auth")
 public class AuthController {
     private final AuthService authService;
+    private final CreateUserService createUserService;
+    private final TeacherRegistrationCodeService teacherCodes;
     private final CookieCsrfTokenRepository csrfTokenRepository;
     private final CookieService cookieService;
 
     public AuthController(
             AuthService authService,
+            CreateUserService createUserService,
+            TeacherRegistrationCodeService teacherCodes,
             CookieCsrfTokenRepository csrfTokenRepository,
             CookieService cookieService) {
         this.authService = authService;
+        this.createUserService = createUserService;
+        this.teacherCodes = teacherCodes;
         this.csrfTokenRepository = csrfTokenRepository;
         this.cookieService = cookieService;
+    }
+
+    @PostMapping("/register/parent")
+    public ResponseEntity<Void> registerParent(@Valid @RequestBody RegistrateDTO body,
+                                               HttpServletRequest request, HttpServletResponse response) {
+        createUserService.registerParent(body);
+        return registrationTokens(body.login(), body.password(), request, response);
+    }
+
+    @GetMapping("/register/teacher/{code}")
+    public ResponseEntity<Void> checkTeacherCode(@PathVariable String code) {
+        teacherCodes.checkInvitationCode(code);
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore()).build();
+    }
+
+    @PostMapping("/register/teacher/{code}")
+    public ResponseEntity<Void> registerTeacher(@PathVariable String code,
+            @Valid @RequestBody TeacherRegistrationDTO body,
+            HttpServletRequest request, HttpServletResponse response) {
+        createUserService.registerTeacher(new RegistrateDTO(
+                body.login(), body.password(), code, body.policyVersion()));
+        return registrationTokens(body.login(), body.password(), request, response);
+    }
+
+    private ResponseEntity<Void> registrationTokens(String login, String password,
+            HttpServletRequest request, HttpServletResponse response) {
+        cookieService.addTokensToResponse(authService.login(new LoginDTO(login, password)), response);
+        csrfTokenRepository.saveToken(null, request, response);
+        return ResponseEntity.status(201).cacheControl(CacheControl.noStore()).build();
     }
 
     @PostMapping("/login")

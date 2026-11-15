@@ -1,6 +1,7 @@
 package tutor.identityservice.entity;
 
 import jakarta.persistence.*;
+import java.time.Instant;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -29,6 +30,18 @@ public class StudentRegRequest {
 
     @Column(columnDefinition = "text")
     private String patronymic;
+
+    @Column(name = "school_grade")
+    private Short schoolGrade;
+
+    @Column(name = "policy_version")
+    private String policyVersion;
+
+    @Column(name = "consent_at")
+    private Instant consentAt;
+
+    @Column(name = "idempotency_key", length = 128)
+    private String idempotencyKey;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, columnDefinition = "text")

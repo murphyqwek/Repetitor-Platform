@@ -1,12 +1,13 @@
 package tutor.identityservice.entity;
 
 import jakarta.persistence.*;
+import java.time.Instant;
+import java.util.UUID;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.UUID;
 
 @Entity
 @Table(name = "student_profile")
@@ -30,6 +31,15 @@ public class StudentProfile {
 
     @Column(name = "school_grade")
     private Short schoolGrade;
+
+    @Column(name = "guardian_id")
+    private UUID guardianId;
+
+    @Column(name = "consent_at")
+    private Instant consentAt;
+
+    @Column(name = "policy_version")
+    private String policyVersion;
 
     public StudentProfile(AppUser user, String password, Short schoolGrade) {
         this.user = user;

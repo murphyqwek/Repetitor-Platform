@@ -2,10 +2,10 @@ package tutor.identityservice.service;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import java.time.Instant;
 import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import tutor.identityservice.dto.RegistrateDTO;
@@ -43,7 +43,7 @@ public class CreateUserService {
         saveUser(registrateDTO.login(),
                 registrateDTO.password(),
                 Role.PARENT,
-                false);
+                false, registrateDTO.policyVersion());
     }
 
     @Transactional()
@@ -56,10 +56,10 @@ public class CreateUserService {
         saveUser(registrateDTO.login(),
                 registrateDTO.password(),
                 Role.TEACHER,
-                false);
+                false, registrateDTO.policyVersion());
     }
 
-    protected void saveUser(String login, String password, Role role, boolean nameRequested) {
+    protected AppUser saveUser(String login, String password, Role role, boolean nameRequested, String policyVersion) {
         try {
             AppUser appUser = new AppUser();
 
@@ -68,10 +68,11 @@ public class CreateUserService {
             appUser.setPasswordHash(passwordEncoder.encode(password));
             appUser.setNameRequested(nameRequested);
 
-            var userRole = new UserRole(appUser, role);
-
+            appUser.setPolicyVersion(policyVersion);
+            appUser.setAcceptedPolicyAt(Instant.now());
             appUserRepository.saveAndFlush(appUser);
-            userRoleRepository.saveAndFlush(userRole);
+            userRoleRepository.saveAndFlush(new UserRole(appUser, role));
+            return appUser;
         } catch (Exception ex) {
             if(isLoginTaken(ex)) {
                 throw new RegistrationLoginTakenException(ex);

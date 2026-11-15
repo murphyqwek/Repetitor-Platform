@@ -38,6 +38,9 @@ public class AppUser {
     @Column(name = "policy_version")
     private String policyVersion;
 
+    @Column(name = "accepted_policy_at")
+    private Instant acceptedPolicyAt;
+
     @Column(nullable = false)
     private boolean blocked;
 

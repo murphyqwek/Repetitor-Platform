@@ -12,6 +12,7 @@ import java.util.UUID;
 
 public interface UserRoleRepository extends JpaRepository<UserRole, UserRoleId> {
     List<UserRole> findAllById_UserId(UUID userId);
+    List<UserRole> findAllById_UserIdIn(java.util.Collection<UUID> userIds);
 
     @Query("select u.blocked from AppUser u where u.id = :id")
     Optional<Boolean> findBlockedById(@Param("id") UUID id);

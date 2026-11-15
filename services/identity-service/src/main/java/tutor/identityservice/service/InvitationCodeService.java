@@ -79,7 +79,7 @@ public class InvitationCodeService {
 
         Instant now = Instant.now();
 
-        if(foundCode.get().getExpiredAt().isBefore(now)) {
+        if(!foundCode.get().getExpiredAt().isAfter(now)) {
             return false;
         }
 

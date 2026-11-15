@@ -23,4 +23,9 @@ public class ParentStudent {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "student_id", nullable = false)
     private AppUser student;
+    public ParentStudent(AppUser parent, AppUser student) {
+        this.parent = parent;
+        this.student = student;
+        this.id = new ParentStudentId(parent.getId(), student.getId());
+    }
 }

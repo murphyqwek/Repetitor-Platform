@@ -1,12 +1,13 @@
 package tutor.identityservice.service;
 
+import java.time.Duration;
+import java.time.Instant;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tutor.identityservice.entity.TeacherRegistrationCode;
+import tutor.identityservice.exception.InvitationCodeExcpetion;
 import tutor.identityservice.repository.TeacherRegistrationCodeRepository;
 
-import java.time.Instant;
-import java.time.Duration;
 
 @Service
 public class TeacherRegistrationCodeService {
@@ -54,6 +55,13 @@ public class TeacherRegistrationCodeService {
         return true;
     }
 
+    @Transactional(readOnly = true)
+    public void checkInvitationCode(String code) {
+        if (!repository.existsByCodeHashAndExpiredAtAfter(codeHasher.hash(code), Instant.now())) {
+            throw new InvitationCodeExcpetion();
+        }
+    }
+
     @Transactional
     public boolean consumeInvitationCode(String invitationCode) {
         var hashedCode = codeHasher.hash(invitationCode);
@@ -66,7 +74,7 @@ public class TeacherRegistrationCodeService {
 
         Instant now = Instant.now();
 
-        if(foundCode.get().getExpiredAt().isBefore(now)) {
+        if(!foundCode.get().getExpiredAt().isAfter(now)) {
             return false;
         }
 
