@@ -29,6 +29,7 @@ class IdentityServiceApplicationTests {
     @Autowired AppUserRepository users;
     @Autowired StudentProfileRepository studentProfiles;
     @Autowired PlatformTransactionManager transactionManager;
+    @Autowired UserService userService;
 
     @DynamicPropertySource
     static void testSettings(DynamicPropertyRegistry properties) throws Exception {
@@ -60,6 +61,19 @@ class IdentityServiceApplicationTests {
 
     @Test
     void contextLoads() {}
+
+    @Test
+    void blockingAndUnblockingPersistAcrossTransactionsAndControlLogin() {
+        var transaction = new TransactionTemplate(transactionManager);
+        var user = transaction.execute(status -> account(Role.PARENT));
+        for (boolean blocked : new boolean[]{true, true, false, false}) {
+            userService.setBlocked(user.getId(), blocked);
+            transaction.executeWithoutResult(status -> {
+                assertEquals(blocked, users.findById(user.getId()).orElseThrow().isBlocked());
+                assertEquals(!blocked, userService.loadUserByUsername(user.getLogin()).isAccountNonLocked());
+            });
+        }
+    }
 
     @Test
     @Transactional

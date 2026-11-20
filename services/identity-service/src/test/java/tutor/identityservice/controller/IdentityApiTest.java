@@ -19,7 +19,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest({AuthController.class, ProfileController.class, StudentRequestController.class, DirectoryController.class, InvitationController.class})
+@WebMvcTest({AuthController.class, ProfileController.class, StudentRequestController.class, DirectoryController.class, InvitationController.class, AdminUserController.class})
 @Import({SecurityConfig.class, ProfileAccessConfig.class})
 class IdentityApiTest {
     @Autowired MockMvc mvc;
@@ -35,6 +35,7 @@ class IdentityApiTest {
     @MockitoBean CreateUserService createUsers;
     @MockitoBean AuthService auth;
     @MockitoBean CookieService cookies;
+    @MockitoBean UserService users;
     final UUID actor = UUID.randomUUID();
     AppUser user;
 
@@ -139,6 +140,72 @@ class IdentityApiTest {
         mvc.perform(post("/api/v1/auth/register/parent").with(csrf()).contentType("application/json")
                 .content("{\"login\":\"parent1\",\"password\":\"password123\",\"invitationCode\":\"CODE\"}"))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void adminCanBlockAndUnblockUsers() throws Exception {
+        UUID target = UUID.randomUUID();
+        for (boolean blocked : new boolean[]{true, false}) {
+            mvc.perform(patch("/api/v1/admin/users/" + target + "/status")
+                    .with(actor("ADMIN")).with(csrf()).contentType("application/json")
+                    .content("{\"blocked\":" + blocked + "}"))
+                    .andExpect(status().isOk()).andExpect(content().string(""))
+                    .andExpect(header().string("Cache-Control", "no-store"));
+            verify(users).setBlocked(target, blocked);
+        }
+    }
+
+    @Test
+    void statusChangesRequireActiveAdmin() throws Exception {
+        String path = "/api/v1/admin/users/" + UUID.randomUUID() + "/status";
+        mvc.perform(patch(path).with(csrf()).contentType("application/json").content("{\"blocked\":true}"))
+                .andExpect(status().isUnauthorized());
+        for (String role : new String[]{"PARENT", "TEACHER", "STUDENT"}) {
+            mvc.perform(patch(path).with(actor(role)).with(csrf())
+                    .contentType("application/json").content("{\"blocked\":true}"))
+                    .andExpect(status().isForbidden());
+        }
+        user.setBlocked(true);
+        mvc.perform(patch(path).with(actor("ADMIN")).with(csrf())
+                .contentType("application/json").content("{\"blocked\":false}"))
+                .andExpect(status().isForbidden());
+        verifyNoInteractions(users);
+    }
+
+    @Test
+    void adminCookieRequiresCsrfForStatusChange() throws Exception {
+        var token = org.springframework.security.oauth2.jwt.Jwt.withTokenValue("admin-token")
+                .header("alg", "RS256").subject(actor.toString()).claim("roles", java.util.List.of("ADMIN")).build();
+        when(jwtDecoder.decode("admin-token")).thenReturn(token);
+        mvc.perform(patch("/api/v1/admin/users/" + UUID.randomUUID() + "/status")
+                .cookie(new jakarta.servlet.http.Cookie("access_token", "admin-token"))
+                .contentType("application/json").content("{\"blocked\":true}"))
+                .andExpect(status().isForbidden());
+        verifyNoInteractions(users);
+    }
+
+    @Test
+    void statusChangesValidateBodyAndUserId() throws Exception {
+        String path = "/api/v1/admin/users/" + UUID.randomUUID() + "/status";
+        for (String body : new String[]{"{}", "{\"blocked\":null}", "{\"blocked\":\"invalid\"}", "{"}) {
+            mvc.perform(patch(path).with(actor("ADMIN")).with(csrf())
+                    .contentType("application/json").content(body))
+                    .andExpect(status().isBadRequest());
+        }
+        mvc.perform(patch("/api/v1/admin/users/invalid/status").with(actor("ADMIN")).with(csrf())
+                .contentType("application/json").content("{\"blocked\":true}"))
+                .andExpect(status().isBadRequest());
+        verifyNoInteractions(users);
+    }
+
+    @Test
+    void statusChangeReturnsNotFoundForMissingUser() throws Exception {
+        UUID target = UUID.randomUUID();
+        doThrow(new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND))
+                .when(users).setBlocked(target, true);
+        mvc.perform(patch("/api/v1/admin/users/" + target + "/status").with(actor("ADMIN")).with(csrf())
+                .contentType("application/json").content("{\"blocked\":true}"))
+                .andExpect(status().isNotFound());
     }
 
     org.springframework.test.web.servlet.request.RequestPostProcessor actor(String role) {
