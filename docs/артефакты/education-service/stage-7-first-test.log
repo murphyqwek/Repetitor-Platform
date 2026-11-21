@@ -1,0 +1,101 @@
+> Task :compileJava
+> Task :processResources
+> Task :classes
+> Task :compileTestJava
+> Task :processTestResources NO-SOURCE
+> Task :testClasses
+Java HotSpot(TM) 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+
+> Task :test
+
+EducationLocalProfileTest > unavailableS3LowersReadinessWithoutExposingException() PASSED
+
+EducationLocalProfileTest > repeatedMigrationsPreserveExistingData() PASSED
+
+EducationLocalProfileTest > contextLoadsAndFlywayInitializesRealPostgresInUtc() PASSED
+
+EducationLocalProfileTest > probesArePublicAndOtherPathsAreClosed() PASSED
+
+EducationLocalProfileTest > keysetCursorSurvivesDeletedAnchorAndEqualTimestamps() PASSED
+
+ScheduleHttpTest > moveChangesOnlyOneLessonAndPreservesItsIdentityAndCreationTime() PASSED
+
+ScheduleHttpTest > v3UpgradePreservesCourseMembershipAndAddsStrictLessonConstraints() PASSED
+
+ScheduleHttpTest > calendarUsesMoscowHalfOpenMonthAndIncludesCrossingLessonsInStartOrder() PASSED
+
+ScheduleHttpTest > missingTimesLocalDatesMalformedUuidAndUnknownFieldsAreRejected() PASSED
+
+ScheduleHttpTest > createMoveAndCancelWaitingForDeletingCannotCommit() PASSED
+
+ScheduleHttpTest > currentStudentCanReadButCannotManageEvenWithTeacherRole() PASSED
+
+ScheduleHttpTest > createReturnsExactSingleDtoAndNormalizesOffsetToUtc() PASSED
+
+ScheduleHttpTest > personalCalendarUnionsOwnedAndCurrentEnrolledCoursesWithoutDuplicates() PASSED
+
+ScheduleHttpTest > cancelPhysicallyDeletesAndCannotBeRestoredOrMoved() PASSED
+
+ScheduleHttpTest > durationBoundsAreExactAndPostgresPrecisionDoesNotChangeResponse() PASSED
+
+ScheduleHttpTest > monthIsRequiredAndStrictForBothCalendars() PASSED
+
+ScheduleHttpTest > lessonIdCannotBeUsedWithAnotherCourse() PASSED
+
+ScheduleHttpTest > deletingCourseIsAbsentAndEveryMutationIsHidden() PASSED
+
+ScheduleHttpTest > adminManagesAnyCourseButPersonalCalendarDoesNotBecomeGlobal() PASSED
+
+ScheduleHttpTest > idempotencyHeaderIsOptionalAndDoesNotChangeCreationSemantics() PASSED
+
+SeriesHttpTest > rulesRemainPrivateWhileMembersReadMixedPersonalCalendar() PASSED
+
+SeriesHttpTest > createsIndefiniteRuleWithSortedWeekdaysAndExactDtoWithoutGeneratingRows() PASSED
+
+SeriesHttpTest > futureRuleCanMoveOriginalBackBeforeStartMonth() PASSED
+
+SeriesHttpTest > adminCreatesForCourseAndDeletingHidesEveryRuleOperation() PASSED
+
+SeriesHttpTest > cancelledOccurrenceStaysCancelledAndCannotBeMovedOrRestored() PASSED
+
+SeriesHttpTest > stopIsInclusiveAndOldMovedOccurrenceSurvivesInLaterMonth() PASSED
+
+SeriesHttpTest > crossesYearsAndLeapMonthWithoutPersistingOccurrences() PASSED
+
+SeriesHttpTest > ruleListUsesCommonScopedCursorContractIncludingStoppedRules() PASSED
+
+SeriesHttpTest > validatesWeekdaysDurationsRequiredFieldsAndStrictJson() PASSED
+
+SeriesHttpTest > v4UpgradePreservesExistingDataAndEnforcesArraysAndExceptionsInPostgres() PASSED
+
+SeriesHttpTest > everyMutationWaitingForDeletingCannotCommit() PASSED
+
+SeriesHttpTest > repeatedMoveKeepsStableIdentityAndOneExceptionWithLatestReason() PASSED
+
+SeriesHttpTest > concurrentMovesUpsertOneExceptionAndCancelRaceNeverRestoresIt() PASSED
+
+SeriesHttpTest > stop20DecemberPreserves15MovedTo25ButRemovesLaterOriginals() PASSED
+
+SeriesHttpTest > validatesOccurrenceDateIntervalsAndCourseBinding() PASSED
+
+SeriesHttpTest > movedOccurrenceTravelsBetweenMonthsWithoutOriginalDuplicate() PASSED
+
+2026-11-21T13:30:53.485+03:00  INFO 4352 --- [education-service] [ionShutdownHook] o.s.boot.tomcat.GracefulShutdown         : Commencing graceful shutdown. Waiting for active requests to complete
+2026-11-21T13:30:54.251+03:00  INFO 4352 --- [education-service] [tomcat-shutdown] o.s.boot.tomcat.GracefulShutdown         : Graceful shutdown complete
+2026-11-21T13:30:54.255+03:00  INFO 4352 --- [education-service] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-11-21T13:30:54.257+03:00  INFO 4352 --- [education-service] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-11-21T13:30:54.258+03:00  INFO 4352 --- [education-service] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2026-11-21T13:30:54.265+03:00  INFO 4352 --- [education-service] [ionShutdownHook] o.s.boot.tomcat.GracefulShutdown         : Commencing graceful shutdown. Waiting for active requests to complete
+2026-11-21T13:30:54.949+03:00  INFO 4352 --- [education-service] [tomcat-shutdown] o.s.boot.tomcat.GracefulShutdown         : Graceful shutdown complete
+2026-11-21T13:30:54.951+03:00  INFO 4352 --- [education-service] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-11-21T13:30:54.952+03:00  INFO 4352 --- [education-service] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-2 - Shutdown initiated...
+2026-11-21T13:30:54.953+03:00  INFO 4352 --- [education-service] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-2 - Shutdown completed.
+2026-11-21T13:30:54.956+03:00  INFO 4352 --- [education-service] [ionShutdownHook] o.s.boot.tomcat.GracefulShutdown         : Commencing graceful shutdown. Waiting for active requests to complete
+2026-11-21T13:30:55.646+03:00  INFO 4352 --- [education-service] [tomcat-shutdown] o.s.boot.tomcat.GracefulShutdown         : Graceful shutdown complete
+2026-11-21T13:30:55.647+03:00  INFO 4352 --- [education-service] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-11-21T13:30:55.648+03:00  INFO 4352 --- [education-service] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-3 - Shutdown initiated...
+2026-11-21T13:30:55.649+03:00  INFO 4352 --- [education-service] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-3 - Shutdown completed.
+
+BUILD SUCCESSFUL in 26s
+4 actionable tasks: 4 executed
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.8.2/userguide/configuration_cache_enabling.html

@@ -1,0 +1,18 @@
+tutor.educationservice.common.CursorCodecTest: tests=3, failures=0, errors=0, skipped=0
+tutor.educationservice.CourseHttpTest: tests=31, failures=0, errors=0, skipped=0
+tutor.educationservice.EducationContextTest: tests=5, failures=0, errors=0, skipped=0
+tutor.educationservice.EducationInfrastructureTest: tests=7, failures=0, errors=0, skipped=0
+tutor.educationservice.EducationLocalProfileTest: tests=5, failures=0, errors=0, skipped=0
+tutor.educationservice.IdentityLookupTest: tests=11, failures=0, errors=0, skipped=0
+tutor.educationservice.integration.storage.StorageUnitTest: tests=5, failures=0, errors=0, skipped=0
+tutor.educationservice.schedule.CalendarTimeTest: tests=1, failures=0, errors=0, skipped=0
+tutor.educationservice.schedule.RecurringCalendarTest: tests=1, failures=0, errors=0, skipped=0
+tutor.educationservice.ScheduleHttpTest: tests=15, failures=0, errors=0, skipped=0
+tutor.educationservice.SecurityHttpTest: tests=28, failures=0, errors=0, skipped=0
+tutor.educationservice.SeriesHttpTest: tests=16, failures=0, errors=0, skipped=0
+{
+  "skipped": 0,
+  "failures": 0,
+  "errors": 0,
+  "tests": 128
+}

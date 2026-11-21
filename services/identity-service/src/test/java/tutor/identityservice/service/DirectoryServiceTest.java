@@ -14,7 +14,31 @@ class DirectoryServiceTest {
     final ParentStudentRepository links = mock(ParentStudentRepository.class);
     final UserRoleRepository roles = mock(UserRoleRepository.class);
     final StudentProfileRepository profiles = mock(StudentProfileRepository.class);
-    final DirectoryService service = new DirectoryService(directory, links, roles, profiles);
+    final AppUserRepository users = mock(AppUserRepository.class);
+    final DirectoryService service = new DirectoryService(directory, links, roles, profiles, users);
+
+    @Test
+    void lookupReturnsRolesAndBlockedStateWithoutSearchOrRelationships() {
+        var target = user("Иванов");
+        target.setBlocked(true);
+        when(users.findById(target.getId())).thenReturn(Optional.of(target));
+        when(roles.findAllById_UserId(target.getId())).thenReturn(List.of(new UserRole(target, Role.STUDENT), new UserRole(target, Role.TEACHER)));
+        var result = service.lookup(target.getId());
+        assertEquals(target.getId(), result.id());
+        assertEquals("Иванов", result.surname());
+        assertTrue(result.blocked());
+        assertEquals(Set.of(Role.STUDENT, Role.TEACHER), result.roles());
+        verifyNoInteractions(directory, links, profiles);
+    }
+
+    @Test
+    void lookupMissingUserReturns404() {
+        UUID id = UUID.randomUUID();
+        when(users.findById(id)).thenReturn(Optional.empty());
+        var error = assertThrows(ResponseStatusException.class, () -> service.lookup(id));
+        assertEquals(404, error.getStatusCode().value());
+        verifyNoInteractions(directory, links, roles, profiles);
+    }
 
     @Test
     void cursorContinuesFromLastReturnedUserAndIsBoundToSearch() {

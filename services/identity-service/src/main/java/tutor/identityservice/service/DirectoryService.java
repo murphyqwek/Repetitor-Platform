@@ -20,6 +20,13 @@ public class DirectoryService {
     private final ParentStudentRepository links;
     private final UserRoleRepository roles;
     private final StudentProfileRepository profiles;
+    private final AppUserRepository users;
+
+    public User lookup(UUID id) {
+        var user = users.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Пользователь не найден"));
+        var userRoles = roles.findAllById_UserId(id).stream().map(role -> role.getId().getRole()).collect(Collectors.toSet());
+        return new User(user.getId(), user.getFirstName(), user.getSurname(), user.getPatronymic(), userRoles, user.isBlocked());
+    }
 
     public Result search(Role type, String fio, int limit, String cursor) {
         if (type != Role.STUDENT && type != Role.PARENT) throw invalidCursor();
@@ -46,6 +53,7 @@ public class DirectoryService {
     }
 
     public record Name(UUID id, String firstName, String surname, String patronymic) {}
+    public record User(UUID id, String firstName, String surname, String patronymic, Set<Role> roles, boolean blocked) {}
     public record Entry(UUID id, String firstName, String surname, String patronymic, boolean blocked,
                         Set<Role> roles, Short grade, List<Name> parents) {}
     public record Result(List<Entry> content, int limit, boolean hasNext, String nextCursor) {}

@@ -18,7 +18,7 @@ import java.util.*;
 import java.util.concurrent.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class IdentityServiceApplicationTests {
     @Autowired CreateUserService createUsers;
     @Autowired InvitationCodeService parentCodes;
@@ -30,6 +30,9 @@ class IdentityServiceApplicationTests {
     @Autowired StudentProfileRepository studentProfiles;
     @Autowired PlatformTransactionManager transactionManager;
     @Autowired UserService userService;
+    @Autowired JwtService jwt;
+    @Autowired UserRoleRepository userRoles;
+    @org.springframework.boot.test.web.server.LocalServerPort int port;
 
     @DynamicPropertySource
     static void testSettings(DynamicPropertyRegistry properties) throws Exception {
@@ -61,6 +64,44 @@ class IdentityServiceApplicationTests {
 
     @Test
     void contextLoads() {}
+
+    @Test
+    void signedCookieLookupUsesRealHttpPostgresAndCurrentBlockingState() throws Exception {
+        var transaction = new TransactionTemplate(transactionManager);
+        var ids = transaction.execute(status -> {
+            var teacher = account(Role.TEACHER);
+            var admin = account(Role.TEACHER);
+            userRoles.save(new UserRole(admin, Role.ADMIN));
+            var target = new AppUser();
+            target.setLogin("lookup-" + UUID.randomUUID());
+            target.setPasswordHash("unused-test-hash");
+            target.setFirstName("Иван");
+            target.setSurname("Ученик");
+            target.setBlocked(true);
+            users.save(target);
+            userRoles.save(new UserRole(target, Role.STUDENT));
+            return List.of(teacher.getId(), admin.getId(), target.getId());
+        });
+        var client = java.net.http.HttpClient.newHttpClient();
+        String path = "http://localhost:" + port + "/api/v1/directory/users/" + ids.get(2);
+        String teacherToken = jwt.generateToken(ids.get(0), Set.of(Role.TEACHER));
+        for (String token : List.of(teacherToken, jwt.generateToken(ids.get(1), Set.of(Role.ADMIN)))) {
+            var response = client.send(java.net.http.HttpRequest.newBuilder(java.net.URI.create(path))
+                    .header("Cookie", "access_token=" + token).build(), java.net.http.HttpResponse.BodyHandlers.ofString());
+            assertEquals(200, response.statusCode());
+            assertEquals("no-store", response.headers().firstValue("Cache-Control").orElseThrow());
+            assertTrue(response.body().contains(ids.get(2).toString()));
+            assertTrue(response.body().contains("\"blocked\":true"));
+            assertTrue(response.body().contains("STUDENT"));
+            assertFalse(response.body().contains("login"));
+            assertFalse(response.body().contains("password"));
+            assertFalse(response.body().contains("createdAt"));
+        }
+        userService.setBlocked(ids.get(0), true);
+        var blocked = client.send(java.net.http.HttpRequest.newBuilder(java.net.URI.create(path))
+                .header("Cookie", "access_token=" + teacherToken).build(), java.net.http.HttpResponse.BodyHandlers.ofString());
+        assertEquals(403, blocked.statusCode());
+    }
 
     @Test
     void blockingAndUnblockingPersistAcrossTransactionsAndControlLogin() {

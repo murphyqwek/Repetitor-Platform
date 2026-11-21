@@ -1,0 +1,8 @@
+PUT_OK
+ANONYMOUS_GET_403
+ Container tutor-platform-local-minio-1  Restarting
+ Container tutor-platform-local-minio-1  Started
+GET_AFTER_RESTART_OK
+DELETE_OK
+curl: (22) The requested URL returned error: 503
+{"status":"UP"}

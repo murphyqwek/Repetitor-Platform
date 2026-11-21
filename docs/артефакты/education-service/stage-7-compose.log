@@ -1,0 +1,186 @@
+#1 [internal] load local bake definitions
+#1 reading from stdin 1.06kB done
+#1 DONE 0.0s
+
+#2 [nginx internal] load build definition from Dockerfile
+#2 transferring dockerfile: 239B 0.0s done
+#2 DONE 0.0s
+
+#3 [education internal] load build definition from Dockerfile
+#3 transferring dockerfile: 657B done
+#3 DONE 0.0s
+
+#4 [education internal] load metadata for docker.io/library/eclipse-temurin:17-jdk@sha256:fbe9d94debbe24e529acfe235b98f065edea050a2dc00129b7d86261ce3248c8
+#4 DONE 0.1s
+
+#5 [education internal] load metadata for docker.io/library/eclipse-temurin:17-jre@sha256:fb2cec8da84e3f086b59e29bf432d372e396fe0c247adcfb89303a28c2e313c0
+#5 DONE 0.1s
+
+#6 [education internal] load .dockerignore
+#6 transferring context: 116B 0.0s done
+#6 DONE 0.0s
+
+#7 [education build 1/7] FROM docker.io/library/eclipse-temurin:17-jdk@sha256:fbe9d94debbe24e529acfe235b98f065edea050a2dc00129b7d86261ce3248c8
+#7 resolve docker.io/library/eclipse-temurin:17-jdk@sha256:fbe9d94debbe24e529acfe235b98f065edea050a2dc00129b7d86261ce3248c8 0.0s done
+#7 DONE 0.0s
+
+#8 [education stage-1 1/3] FROM docker.io/library/eclipse-temurin:17-jre@sha256:fb2cec8da84e3f086b59e29bf432d372e396fe0c247adcfb89303a28c2e313c0
+#8 resolve docker.io/library/eclipse-temurin:17-jre@sha256:fb2cec8da84e3f086b59e29bf432d372e396fe0c247adcfb89303a28c2e313c0 0.0s done
+#8 DONE 0.0s
+
+#9 [education internal] load build context
+#9 transferring context: 72.34kB 0.0s done
+#9 DONE 0.1s
+
+#10 [education build 2/7] WORKDIR /workspace
+#10 CACHED
+
+#11 [education build 3/7] COPY gradlew settings.gradle.kts build.gradle.kts ./
+#11 DONE 0.1s
+
+#12 [nginx internal] load metadata for docker.io/library/nginx:stable-alpine
+#12 ...
+
+#13 [education build 4/7] COPY gradle/ gradle/
+#13 DONE 0.0s
+
+#14 [auth] library/nginx:pull token for registry-1.docker.io
+#14 DONE 0.0s
+
+#15 [education build 5/7] RUN chmod +x gradlew && ./gradlew --no-daemon help
+#15 0.701 Fetching distribution.
+#15 ...
+
+#12 [nginx internal] load metadata for docker.io/library/nginx:stable-alpine
+#12 DONE 1.1s
+
+#16 [nginx internal] load .dockerignore
+#16 transferring context: 105B 0.0s done
+#16 DONE 0.0s
+
+#17 [nginx internal] load build context
+#17 transferring context: 199B done
+#17 DONE 0.0s
+
+#15 [education build 5/7] RUN chmod +x gradlew && ./gradlew --no-daemon help
+#15 0.702 Downloading https://services.gradle.org/distributions/gradle-9.8.2-bin.zip
+#15 ...
+
+#18 [nginx 1/3] FROM docker.io/library/nginx:stable-alpine@sha256:caf4e1e032a20f9c3c5e28fc7f25ffd768ad8677b4975c54193075997b3a97e3
+#18 resolve docker.io/library/nginx:stable-alpine@sha256:caf4e1e032a20f9c3c5e28fc7f25ffd768ad8677b4975c54193075997b3a97e3 0.1s done
+#18 DONE 0.1s
+
+#19 [nginx 2/3] COPY Docker/nginx/default.conf.template /etc/nginx/templates/default.conf.template
+#19 CACHED
+
+#20 [nginx 3/3] COPY Docker/nginx/html/ /usr/share/nginx/html/
+#20 CACHED
+
+#21 [nginx] exporting to image
+#21 exporting layers 0.0s done
+#21 exporting manifest sha256:c79dd285be40080a496f818a85b81e991bfd4d820235ac31834c64ac90e51b9e done
+#21 exporting config sha256:6383448c6cce1447cc4720eae621e1f85df293b6b263a4f51bd138b485edfff3 done
+#21 exporting attestation manifest sha256:7509107af66491d6337f136b18e942153259ac3589620b3bbf736ff772cad792 0.0s done
+#21 exporting manifest list sha256:3f1663092c378e4805c2840dc3818e26cdc8a027c2df7449944d700a6950ff08
+#21 exporting manifest list sha256:3f1663092c378e4805c2840dc3818e26cdc8a027c2df7449944d700a6950ff08 0.0s done
+#21 naming to docker.io/library/tutor-platform-local-nginx:latest done
+#21 unpacking to docker.io/library/tutor-platform-local-nginx:latest 0.0s done
+#21 DONE 0.2s
+
+#15 [education build 5/7] RUN chmod +x gradlew && ./gradlew --no-daemon help
+#15 ...
+
+#22 [nginx] resolving provenance for metadata file
+#22 DONE 0.0s
+
+#15 [education build 5/7] RUN chmod +x gradlew && ./gradlew --no-daemon help
+#15 2.198 ..............10%..............20%...............30%..............40%...............50%..............60%...............70%..............80%...............90%..............100%
+#15 10.99 
+#15 10.99 Welcome to Gradle 9.8.2!
+#15 10.99 
+#15 10.99 Here are the highlights of this release:
+#15 10.99  - Java 27 support
+#15 10.99  - Maven mirror settings reuse
+#15 10.99  - Linked problem locations in build output
+#15 10.99 
+#15 10.99 For more details see https://docs.gradle.org/9.8.2/release-notes.html
+#15 10.99 
+#15 11.09 To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.8.2/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+#15 11.99 Daemon will be stopped at the end of the build 
+#15 32.09 
+#15 32.09 > Task :help
+#15 32.09 
+#15 32.09 Welcome to Gradle 9.8.2.
+#15 32.09 
+#15 32.09 To run a build, run gradlew <task> ...
+#15 32.09 
+#15 32.09 To see a list of available tasks, run gradlew tasks
+#15 32.09 
+#15 32.09 To see more detail about a task, run gradlew help --task <task>
+#15 32.09 
+#15 32.09 To see a list of command-line options, run gradlew --help
+#15 32.09 
+#15 32.09 For more detail on using Gradle, see https://docs.gradle.org/9.8.2/userguide/command_line_interface.html
+#15 32.09 
+#15 32.09 For troubleshooting, visit https://help.gradle.org
+#15 32.09 
+#15 32.09 BUILD SUCCESSFUL in 31s
+#15 32.09 1 actionable task: 1 executed
+#15 32.09 Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.8.2/userguide/configuration_cache_enabling.html
+#15 DONE 32.3s
+
+#23 [education build 6/7] COPY src/main/ src/main/
+#23 DONE 0.1s
+
+#24 [education build 7/7] RUN ./gradlew --no-daemon bootJar
+#24 0.681 To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.8.2/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+#24 1.480 Daemon will be stopped at the end of the build 
+#24 31.68 > Task :compileJava
+#24 31.78 > Task :processResources
+#24 31.78 > Task :classes
+#24 31.78 > Task :resolveMainClassName
+#24 40.45 > Task :bootJar
+#24 40.45 
+#24 40.45 BUILD SUCCESSFUL in 40s
+#24 40.45 4 actionable tasks: 4 executed
+#24 40.45 Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.8.2/userguide/configuration_cache_enabling.html
+#24 DONE 40.6s
+
+#25 [education stage-1 2/3] WORKDIR /app
+#25 CACHED
+
+#26 [education stage-1 3/3] COPY --from=build /workspace/build/libs/education-service.jar /app/app.jar
+#26 DONE 0.1s
+
+#27 [education] exporting to image
+#27 exporting layers
+#27 exporting layers 1.9s done
+#27 exporting manifest sha256:36dcbfe7f7895f5bb77378bcd1ee194ea7d421529d2d3792299a801fe6b9ace5 done
+#27 exporting config sha256:472c827dd6f5292246b4f1a69c8423acce7fbf4673029eb48aa6c2da2298fad1 done
+#27 exporting attestation manifest sha256:26d041c5a8af4abc93ff463af3a0f0745a8332e1bbf78c1678d205dfb0ca21ee 0.0s done
+#27 exporting manifest list sha256:397b9c447ea7f76a0cf145ce0db97b46781ac57c006bf9b8f826ed7c71fe9a8a done
+#27 naming to docker.io/library/tutor-platform-local-education:latest done
+#27 unpacking to docker.io/library/tutor-platform-local-education:latest
+#27 unpacking to docker.io/library/tutor-platform-local-education:latest 0.4s done
+#27 DONE 2.3s
+
+#28 [education] resolving provenance for metadata file
+#28 DONE 0.0s
+ tutor-platform-local-education  Built
+ tutor-platform-local-nginx  Built
+ Container tutor-platform-local-education-1  Recreate
+ Container tutor-platform-local-nginx-1  Recreate
+ Container tutor-platform-local-education-1  Recreated
+ Container tutor-platform-local-nginx-1  Recreated
+ Container tutor-platform-local-redis-1  Starting
+ Container tutor-platform-local-postgres-1  Starting
+ Container tutor-platform-local-minio-1  Starting
+ Container tutor-platform-local-kafka-1  Starting
+ Container tutor-platform-local-nginx-1  Starting
+ Container tutor-platform-local-education-postgres-1  Starting
+ Container tutor-platform-local-redis-1  Started
+ Container tutor-platform-local-minio-1  Started
+ Container tutor-platform-local-nginx-1  Started
+ Container tutor-platform-local-kafka-1  Started
+ Container tutor-platform-local-postgres-1  Started
+Error response from daemon: ports are not available: exposing port TCP 127.0.0.1:5433 -> 127.0.0.1:0: listen tcp4 127.0.0.1:5433: bind: Only one usage of each socket address (protocol/network address/port) is normally permitted.

@@ -1,0 +1,56 @@
+Picked up JAVA_TOOL_OPTIONS: -Duser.timezone=UTC
+> Task :compileJava UP-TO-DATE
+> Task :processResources UP-TO-DATE
+> Task :classes UP-TO-DATE
+> Task :compileTestJava
+> Task :processTestResources NO-SOURCE
+> Task :testClasses
+
+Picked up JAVA_TOOL_OPTIONS: -Duser.timezone=UTC
+> Task :test
+
+EducationInfrastructureTest > initializationError FAILED
+    org.testcontainers.containers.ContainerFetchException at GenericContainer.java:1308
+        Caused by: org.testcontainers.shaded.org.awaitility.core.ConditionTimeoutException at ConditionAwaiter.java:167
+
+Java HotSpot(TM) 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+
+> Task :test
+
+EducationContextTest > unavailableS3LowersReadinessWithoutExposingException() PASSED
+
+EducationContextTest > contextLoadsAndFlywayInitializesRealPostgresInUtc() PASSED
+
+EducationContextTest > probesArePublicAndOtherPathsAreClosed() PASSED
+
+StorageUnitTest > keysAreUniqueAndHaveSeparatePrefixes() PASSED
+
+StorageUnitTest > rejectsMissingSecretsAtContextStartupWithoutLeakingOtherCredentials() PASSED
+
+StorageUnitTest > validatesConfigurationAndRedactsCredentials() PASSED
+
+StorageUnitTest > closesUploadStreamEvenWhenValidationFails() PASSED
+
+StorageUnitTest > validatesSafeMetadataWithoutApplyingChatLimitsToMaterials() PASSED
+
+2026-11-20T14:17:24.870Z  INFO 23232 --- [education-service] [ionShutdownHook] o.s.boot.tomcat.GracefulShutdown         : Commencing graceful shutdown. Waiting for active requests to complete
+2026-11-20T14:17:25.581Z  INFO 23232 --- [education-service] [tomcat-shutdown] o.s.boot.tomcat.GracefulShutdown         : Graceful shutdown complete
+2026-11-20T14:17:25.586Z  INFO 23232 --- [education-service] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-11-20T14:17:25.588Z  INFO 23232 --- [education-service] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-11-20T14:17:25.589Z  INFO 23232 --- [education-service] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+
+> Task :test FAILED
+
+9 tests completed, 1 failed
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':test'.
+> There were failing tests. See the report at: file:///D:/Project/Repetitor%20Platform/services/education-service/build/reports/tests/test/index.html
+
+* Try:
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+
+BUILD FAILED in 53s
+4 actionable tasks: 2 executed, 2 up-to-date

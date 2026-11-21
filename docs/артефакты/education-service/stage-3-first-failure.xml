@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="tutor.educationservice.CourseHttpTest" tests="17" skipped="0" failures="2" errors="0" timestamp="2026-11-20T15:44:26.689Z" hostname="DESKTOP-LIV018F" time="10.275">
+  <properties/>
+  <testcase name="adminTeacherCanCreateForSelfAndBlockedOwnerDoesNotBecomeAnInventedRestriction()" classname="tutor.educationservice.CourseHttpTest" time="0.548"/>
+  <testcase name="renameChangesOnlyTitleAndRejectsImmutableFields()" classname="tutor.educationservice.CourseHttpTest" time="0.231"/>
+  <testcase name="adminCreatesForExistingTeacherAndCanReadAndRenameOtherCourse()" classname="tutor.educationservice.CourseHttpTest" time="0.051"/>
+  <testcase name="v1UpgradeAppliesV2WithoutLosingExistingData()" classname="tutor.educationservice.CourseHttpTest" time="0.233"/>
+  <testcase name="paginationUsesPostgresUuidOrderingAndSurvivesDeletedAnchor()" classname="tutor.educationservice.CourseHttpTest" time="0.104"/>
+  <testcase name="hiddenMissingAndDeletingCoursesReturn404WithoutDto()" classname="tutor.educationservice.CourseHttpTest" time="0.101"/>
+  <testcase name="renameWaitingForDeleteTransitionCannotCommitAfterDeleting()" classname="tutor.educationservice.CourseHttpTest" time="0.13"/>
+  <testcase name="duplicateTitlesAreAllowedAndStudentRoleDoesNotCancelTeacherRole()" classname="tutor.educationservice.CourseHttpTest" time="0.034"/>
+  <testcase name="studentsCannotCreateAndTeachersCannotSupplyOwnerEvenTheirOwn()" classname="tutor.educationservice.CourseHttpTest" time="0.027"/>
+  <testcase name="teacherCreatesOwnCourseWithoutIdempotencyHeaderAndGetsExactDto()" classname="tutor.educationservice.CourseHttpTest" time="0.025"/>
+  <testcase name="listScopesFiltersAndRolesDoNotLeakOtherTeachers()" classname="tutor.educationservice.CourseHttpTest" time="0.07">
+    <failure message="java.lang.AssertionError: &#13;&#10;Expecting actual:&#13;&#10;  &quot;{&quot;detail&quot;:&quot;teacherId is required for administrator OWNED scope&quot;,&quot;instance&quot;:&quot;/api/v1/courses&quot;,&quot;status&quot;:400,&quot;title&quot;:&quot;Bad Request&quot;,&quot;code&quot;:&quot;INVALID_REQUEST&quot;}&quot;&#13;&#10;not to contain:&#13;&#10;  [&quot;private-title&quot;,&#13;&#10;    &quot;private-upstream-diagnostic&quot;,&#13;&#10;    &quot;teacherId&quot;,&#13;&#10;    &quot;meetingUrl&quot;,&#13;&#10;    &quot;stackTrace&quot;]&#13;&#10;but found:&#13;&#10;  [&quot;teacherId&quot;]&#13;&#10;" type="java.lang.AssertionError">java.lang.AssertionError: 
+Expecting actual:
+  &quot;{&quot;detail&quot;:&quot;teacherId is required for administrator OWNED scope&quot;,&quot;instance&quot;:&quot;/api/v1/courses&quot;,&quot;status&quot;:400,&quot;title&quot;:&quot;Bad Request&quot;,&quot;code&quot;:&quot;INVALID_REQUEST&quot;}&quot;
+not to contain:
+  [&quot;private-title&quot;,
+    &quot;private-upstream-diagnostic&quot;,
+    &quot;teacherId&quot;,
+    &quot;meetingUrl&quot;,
+    &quot;stackTrace&quot;]
+but found:
+  [&quot;teacherId&quot;]
+
+	at tutor.educationservice.CourseHttpTest.assertProblem(CourseHttpTest.java:387)
+	at tutor.educationservice.CourseHttpTest.listScopesFiltersAndRolesDoNotLeakOtherTeachers(CourseHttpTest.java:227)
+</failure>
+  </testcase>
+  <testcase name="invalidAdminTeacherAndDependencyFailureNeverWriteCourse()" classname="tutor.educationservice.CourseHttpTest" time="0.013">
+    <failure message="java.lang.AssertionError: &#13;&#10;Expecting actual:&#13;&#10;  &quot;{&quot;detail&quot;:&quot;teacherId is required for an administrator without a teacher role&quot;,&quot;instance&quot;:&quot;/api/v1/courses&quot;,&quot;status&quot;:422,&quot;title&quot;:&quot;Unprocessable Content&quot;,&quot;code&quot;:&quot;INVALID_REQUEST&quot;}&quot;&#13;&#10;not to contain:&#13;&#10;  [&quot;private-title&quot;,&#13;&#10;    &quot;private-upstream-diagnostic&quot;,&#13;&#10;    &quot;teacherId&quot;,&#13;&#10;    &quot;meetingUrl&quot;,&#13;&#10;    &quot;stackTrace&quot;]&#13;&#10;but found:&#13;&#10;  [&quot;teacherId&quot;]&#13;&#10;" type="java.lang.AssertionError">java.lang.AssertionError: 
+Expecting actual:
+  &quot;{&quot;detail&quot;:&quot;teacherId is required for an administrator without a teacher role&quot;,&quot;instance&quot;:&quot;/api/v1/courses&quot;,&quot;status&quot;:422,&quot;title&quot;:&quot;Unprocessable Content&quot;,&quot;code&quot;:&quot;INVALID_REQUEST&quot;}&quot;
+not to contain:
+  [&quot;private-title&quot;,
+    &quot;private-upstream-diagnostic&quot;,
+    &quot;teacherId&quot;,
+    &quot;meetingUrl&quot;,
+    &quot;stackTrace&quot;]
+but found:
+  [&quot;teacherId&quot;]
+
+	at tutor.educationservice.CourseHttpTest.assertProblem(CourseHttpTest.java:387)
+	at tutor.educationservice.CourseHttpTest.invalidAdminTeacherAndDependencyFailureNeverWriteCourse(CourseHttpTest.java:156)
+</failure>
+  </testcase>
+  <testcase name="titlesAndUnknownCreateFieldsAreValidatedWithoutArbitraryLengthLimit()" classname="tutor.educationservice.CourseHttpTest" time="0.073"/>
+  <testcase name="concurrentCreatesWithSameTitleAreSeparateResources()" classname="tutor.educationservice.CourseHttpTest" time="0.015"/>
+  <testcase name="schemaHasNoIdentityForeignKeyAndRejectsInvalidStatesAndEmptyTitles()" classname="tutor.educationservice.CourseHttpTest" time="0.015"/>
+  <testcase name="requiredScopeUuidLimitAndDefaultPageSizeAreEnforced()" classname="tutor.educationservice.CourseHttpTest" time="0.104"/>
+  <testcase name="cursorCannotBeReusedByAnotherActorScopeOrOwnerFilter()" classname="tutor.educationservice.CourseHttpTest" time="0.053"/>
+  <system-out><![CDATA[18:44:26.818 [Test worker] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+18:44:26.822 [Test worker] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+18:44:26.828 [Test worker] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 2.0.5
+18:44:26.979 [Test worker] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.NpipeSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+18:44:27.167 [Test worker] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Npipe socket (npipe:////./pipe/docker_engine)
+18:44:27.168 [Test worker] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+18:44:27.181 [Test worker] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 28.5.2
+  API Version: 1.51
+  Operating System: Docker Desktop (containerized)
+  Total Memory: 15546 MB
+  Labels: 
+    com.docker.desktop.address=npipe://\\.\pipe\docker_cli
+18:44:27.323 [Test worker] INFO tc.testcontainers/ryuk:0.14.0 -- Creating container for image: testcontainers/ryuk:0.14.0
+18:44:27.500 [Test worker] INFO tc.testcontainers/ryuk:0.14.0 -- Container testcontainers/ryuk:0.14.0 is starting: 5cb244cc10ec13ec1aa33849d98753a127f48f9a631041387b92a9d8852d88be
+18:44:27.852 [Test worker] INFO tc.testcontainers/ryuk:0.14.0 -- Container testcontainers/ryuk:0.14.0 started in PT0.528499S
+18:44:27.856 [Test worker] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+18:44:27.856 [Test worker] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+18:44:27.856 [Test worker] INFO org.testcontainers.DockerClientFactory -- ?? Docker server version should be at least 1.6.0
+18:44:27.857 [Test worker] INFO tc.postgres:17-alpine -- Creating container for image: postgres:17-alpine
+18:44:27.912 [Test worker] INFO tc.postgres:17-alpine -- Container postgres:17-alpine is starting: fe1a104f82e43d4d80fbc264cfdca41ca85af1bddc60c971d1d247feac610dc8
+18:44:29.191 [Test worker] INFO tc.postgres:17-alpine -- Container postgres:17-alpine started in PT1.334358S
+18:44:29.192 [Test worker] INFO tc.postgres:17-alpine -- Container is started (JDBC URL: jdbc:postgresql://localhost:53504/test?loggerLevel=OFF)
+18:44:29.256 [Test worker] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [tutor.educationservice.CourseHttpTest]: CourseHttpTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+18:44:29.323 [Test worker] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration tutor.educationservice.EducationServiceApplication for test class tutor.educationservice.CourseHttpTest
+18:44:29.373 [Test worker] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [tutor.educationservice.CourseHttpTest]: CourseHttpTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+18:44:29.375 [Test worker] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration tutor.educationservice.EducationServiceApplication for test class tutor.educationservice.CourseHttpTest
+2026-11-20T18:44:29.781+03:00  INFO 28208 --- [education-service] [    Test worker] tutor.educationservice.CourseHttpTest    : Starting CourseHttpTest using Java 17.0.12 with PID 28208 (started by qweka in D:\Project\Repetitor Platform\services\education-service)
+2026-11-20T18:44:29.783+03:00  INFO 28208 --- [education-service] [    Test worker] tutor.educationservice.CourseHttpTest    : The following 1 profile is active: "test"
+2026-11-20T18:44:30.304+03:00  INFO 28208 --- [education-service] [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-11-20T18:44:30.349+03:00  INFO 28208 --- [education-service] [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 37 ms. Found 1 JPA repository interface.
+2026-11-20T18:44:31.575+03:00  INFO 28208 --- [education-service] [    Test worker] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 0 (http)
+2026-11-20T18:44:31.586+03:00  INFO 28208 --- [education-service] [    Test worker] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-11-20T18:44:31.587+03:00  INFO 28208 --- [education-service] [    Test worker] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.24]
+2026-11-20T18:44:31.664+03:00  INFO 28208 --- [education-service] [    Test worker] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 1865 ms
+2026-11-20T18:44:31.984+03:00  INFO 28208 --- [education-service] [    Test worker] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-11-20T18:44:32.091+03:00  INFO 28208 --- [education-service] [    Test worker] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@205efdfc
+2026-11-20T18:44:32.093+03:00  INFO 28208 --- [education-service] [    Test worker] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-11-20T18:44:32.113+03:00  INFO 28208 --- [education-service] [    Test worker] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:53504/test?loggerLevel=OFF (PostgreSQL 17.12)
+2026-11-20T18:44:32.169+03:00  INFO 28208 --- [education-service] [    Test worker] o.f.c.i.s.JdbcTableSchemaHistory         : Schema history table "public"."flyway_schema_history" does not exist yet
+2026-11-20T18:44:32.171+03:00  INFO 28208 --- [education-service] [    Test worker] o.f.core.internal.command.DbValidate     : Successfully validated 2 migrations (execution time 00:00.014s)
+2026-11-20T18:44:32.183+03:00  INFO 28208 --- [education-service] [    Test worker] o.f.c.i.s.JdbcTableSchemaHistory         : Creating Schema History table "public"."flyway_schema_history" ...
+2026-11-20T18:44:32.226+03:00  INFO 28208 --- [education-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Current version of schema "public": << Empty Schema >>
+2026-11-20T18:44:32.231+03:00  INFO 28208 --- [education-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "1 - initialize schema"
+2026-11-20T18:44:32.251+03:00  INFO 28208 --- [education-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "2 - course"
+2026-11-20T18:44:32.269+03:00  INFO 28208 --- [education-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Successfully applied 2 migrations to schema "public", now at version v2 (execution time 00:00.012s)
+2026-11-20T18:44:32.360+03:00  INFO 28208 --- [education-service] [    Test worker] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-11-20T18:44:32.413+03:00  INFO 28208 --- [education-service] [    Test worker] org.hibernate.orm.core                   : HHH000001: Hibernate ORM core version 7.4.5.Final
+2026-11-20T18:44:32.687+03:00  INFO 28208 --- [education-service] [    Test worker] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-11-20T18:44:32.759+03:00  INFO 28208 --- [education-service] [    Test worker] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:postgresql://localhost:53504/test?loggerLevel=OFF]
+	Database driver: PostgreSQL JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 17.12
+	Default catalog/schema: test/public
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: none
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-11-20T18:44:33.523+03:00  INFO 28208 --- [education-service] [    Test worker] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-11-20T18:44:33.556+03:00  INFO 28208 --- [education-service] [    Test worker] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-11-20T18:44:33.691+03:00  INFO 28208 --- [education-service] [    Test worker] o.s.d.j.r.query.QueryEnhancerFactories   : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-11-20T18:44:35.000+03:00  INFO 28208 --- [education-service] [    Test worker] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 1 endpoint beneath base path '/actuator'
+2026-11-20T18:44:35.071+03:00  INFO 28208 --- [education-service] [    Test worker] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 53521 (http) with context path '/'
+2026-11-20T18:44:35.080+03:00  INFO 28208 --- [education-service] [    Test worker] tutor.educationservice.CourseHttpTest    : Started CourseHttpTest in 5.672 seconds (process running for 9.19)
+2026-11-20T18:44:35.360+03:00  INFO 28208 --- [education-service] [o-auto-1-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-11-20T18:44:35.361+03:00  INFO 28208 --- [education-service] [o-auto-1-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-11-20T18:44:35.362+03:00  INFO 28208 --- [education-service] [o-auto-1-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2026-11-20T18:44:35.978+03:00  INFO 28208 --- [education-service] [    Test worker] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:53504/test?loggerLevel=OFF (PostgreSQL 17.12)
+2026-11-20T18:44:35.993+03:00  INFO 28208 --- [education-service] [    Test worker] o.f.core.internal.database.base.Schema   : Creating schema "stage3_upgrade" ...
+2026-11-20T18:44:35.996+03:00  INFO 28208 --- [education-service] [    Test worker] o.f.c.i.s.JdbcTableSchemaHistory         : Creating Schema History table "stage3_upgrade"."flyway_schema_history" ...
+2026-11-20T18:44:36.031+03:00  INFO 28208 --- [education-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Current version of schema "stage3_upgrade": null
+2026-11-20T18:44:36.034+03:00  INFO 28208 --- [education-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "stage3_upgrade" to version "1 - initialize schema"
+2026-11-20T18:44:36.043+03:00  INFO 28208 --- [education-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Successfully applied 1 migration to schema "stage3_upgrade", now at version v1 (execution time 00:00.003s)
+2026-11-20T18:44:36.066+03:00  INFO 28208 --- [education-service] [    Test worker] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:53504/test?loggerLevel=OFF (PostgreSQL 17.12)
+2026-11-20T18:44:36.084+03:00  INFO 28208 --- [education-service] [    Test worker] o.f.core.internal.command.DbValidate     : Successfully validated 3 migrations (execution time 00:00.006s)
+2026-11-20T18:44:36.103+03:00  INFO 28208 --- [education-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Current version of schema "stage3_upgrade": 1
+2026-11-20T18:44:36.107+03:00  INFO 28208 --- [education-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "stage3_upgrade" to version "2 - course"
+2026-11-20T18:44:36.124+03:00  INFO 28208 --- [education-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Successfully applied 1 migration to schema "stage3_upgrade", now at version v2 (execution time 00:00.011s)
+2026-11-20T18:44:36.136+03:00  INFO 28208 --- [education-service] [    Test worker] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:53504/test?loggerLevel=OFF (PostgreSQL 17.12)
+2026-11-20T18:44:36.154+03:00  INFO 28208 --- [education-service] [    Test worker] o.f.core.internal.command.DbValidate     : Successfully validated 3 migrations (execution time 00:00.005s)
+2026-11-20T18:44:36.172+03:00  INFO 28208 --- [education-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Current version of schema "stage3_upgrade": 2
+2026-11-20T18:44:36.172+03:00  INFO 28208 --- [education-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Schema "stage3_upgrade" is up to date. No migration necessary.
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

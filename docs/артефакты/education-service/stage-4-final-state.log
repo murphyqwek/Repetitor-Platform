@@ -1,0 +1,22 @@
+NAME                                        IMAGE                                                                                                             COMMAND                  SERVICE              CREATED          STATUS                      PORTS
+tutor-platform-local-education-1            tutor-platform-local-education                                                                                    "java -jar /app/app.…"   education            18 seconds ago   Up 15 seconds (healthy)     127.0.0.1:8081->8080/tcp
+tutor-platform-local-education-postgres-1   postgres:17-alpine                                                                                                "docker-entrypoint.s…"   education-postgres   20 hours ago     Up 3 minutes (healthy)      127.0.0.1:5433->5432/tcp
+tutor-platform-local-kafka-1                apache/kafka:4.1.1                                                                                                "/__cacert_entrypoin…"   kafka                7 days ago       Up 3 minutes                127.0.0.1:9092->9092/tcp
+tutor-platform-local-minio-1                pgsty/silo:RELEASE.2026-11-12T00-00-00Z@sha256:c20d112390b9a9ce8c11b8af95ad35bcaa62f4759663c09c936cd8d2b511f329   "/usr/bin/docker-ent…"   minio                20 hours ago     Up 3 minutes (healthy)      127.0.0.1:9000-9001->9000-9001/tcp
+tutor-platform-local-minio-init-1           pgsty/mc:RELEASE.2026-11-12T00-00-00Z@sha256:b532278b7a3747dbab6fe45eebb40a653efa704e6758e24e9d9ec54fc96c1800     "/bin/sh /bootstrap.…"   minio-init           20 hours ago     Exited (0) 15 seconds ago   
+tutor-platform-local-nginx-1                tutor-platform-local-nginx                                                                                        "/docker-entrypoint.…"   nginx                18 seconds ago   Up 16 seconds               127.0.0.1:8090->80/tcp
+tutor-platform-local-postgres-1             postgres:17-alpine                                                                                                "docker-entrypoint.s…"   postgres             7 days ago       Up 3 minutes (healthy)      127.0.0.1:5432->5432/tcp
+tutor-platform-local-redis-1                redis:7.4-alpine                                                                                                  "docker-entrypoint.s…"   redis                7 days ago       Up 3 minutes (healthy)      127.0.0.1:6379->6379/tcp
+9431f81f3151f7c0811d8f99e1b86c5d1eb3e02dcfbd398c83edfd6725afc843 tutor-platform-local_education_postgres_data 
+1|initialize schema
+2|course
+3|course student
+course
+course_student
+flyway_schema_history
+0
+0
+/actuator/health/liveness HTTP 200 {"status":"UP"}
+/actuator/health/readiness HTTP 200 {"status":"UP"}
+/api/v1/courses?scope=ENROLLED HTTP 401 {"detail":"Authentication required","status":401,"title":"Unauthorized","code":"UNAUTHORIZED"}
+healthy

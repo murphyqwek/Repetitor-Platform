@@ -1,0 +1,12 @@
+spring:
+  main:
+    banner-mode: off
+  jpa:
+    properties:
+      hibernate.generate_statistics: false
+logging:
+  level:
+    org.testcontainers: INFO
+education:
+  outbox:
+    enabled: false

@@ -7,6 +7,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import tutor.identityservice.entity.Role;
 import tutor.identityservice.service.DirectoryService;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/directory/users")
@@ -14,6 +15,11 @@ import tutor.identityservice.service.DirectoryService;
 @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
 public class DirectoryController {
     private final DirectoryService directory;
+
+    @GetMapping("/{id}")
+    public ResponseEntity<DirectoryService.User> lookup(@PathVariable UUID id) {
+        return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(directory.lookup(id));
+    }
 
     @GetMapping
     public ResponseEntity<DirectoryService.Result> search(@RequestParam Role type,

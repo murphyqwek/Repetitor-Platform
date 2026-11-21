@@ -1,0 +1,130 @@
+#1 [internal] load local bake definitions
+#1 reading from stdin 1.06kB done
+#1 DONE 0.0s
+
+#2 [nginx internal] load build definition from Dockerfile
+#2 transferring dockerfile: 239B done
+#2 DONE 0.0s
+
+#3 [education internal] load build definition from Dockerfile
+#3 transferring dockerfile: 657B done
+#3 DONE 0.0s
+
+#4 [education internal] load metadata for docker.io/library/eclipse-temurin:17-jre@sha256:fb2cec8da84e3f086b59e29bf432d372e396fe0c247adcfb89303a28c2e313c0
+#4 DONE 0.0s
+
+#5 [education internal] load metadata for docker.io/library/eclipse-temurin:17-jdk@sha256:fbe9d94debbe24e529acfe235b98f065edea050a2dc00129b7d86261ce3248c8
+#5 DONE 0.0s
+
+#6 [education internal] load .dockerignore
+#6 transferring context: 116B done
+#6 DONE 0.0s
+
+#7 [education build 1/7] FROM docker.io/library/eclipse-temurin:17-jdk@sha256:fbe9d94debbe24e529acfe235b98f065edea050a2dc00129b7d86261ce3248c8
+#7 resolve docker.io/library/eclipse-temurin:17-jdk@sha256:fbe9d94debbe24e529acfe235b98f065edea050a2dc00129b7d86261ce3248c8 0.0s done
+#7 DONE 0.0s
+
+#8 [education stage-1 1/3] FROM docker.io/library/eclipse-temurin:17-jre@sha256:fb2cec8da84e3f086b59e29bf432d372e396fe0c247adcfb89303a28c2e313c0
+#8 resolve docker.io/library/eclipse-temurin:17-jre@sha256:fb2cec8da84e3f086b59e29bf432d372e396fe0c247adcfb89303a28c2e313c0 0.0s done
+#8 DONE 0.0s
+
+#9 [education internal] load build context
+#9 transferring context: 6.95kB done
+#9 DONE 0.0s
+
+#10 [education build 2/7] WORKDIR /workspace
+#10 CACHED
+
+#11 [education build 3/7] COPY gradlew settings.gradle.kts build.gradle.kts ./
+#11 CACHED
+
+#12 [education build 6/7] COPY src/main/ src/main/
+#12 CACHED
+
+#13 [education build 5/7] RUN chmod +x gradlew && ./gradlew --no-daemon help
+#13 CACHED
+
+#14 [education build 7/7] RUN ./gradlew --no-daemon bootJar
+#14 CACHED
+
+#15 [education build 4/7] COPY gradle/ gradle/
+#15 CACHED
+
+#16 [education stage-1 2/3] WORKDIR /app
+#16 CACHED
+
+#17 [education stage-1 3/3] COPY --from=build /workspace/build/libs/education-service.jar /app/app.jar
+#17 CACHED
+
+#18 [education] exporting to image
+#18 exporting layers done
+#18 exporting manifest sha256:36dcbfe7f7895f5bb77378bcd1ee194ea7d421529d2d3792299a801fe6b9ace5 done
+#18 exporting config sha256:472c827dd6f5292246b4f1a69c8423acce7fbf4673029eb48aa6c2da2298fad1 done
+#18 exporting attestation manifest sha256:dd5c1434e63d71027e3d554154b6e9eadc46a96bba06f772ec85ea8645df10fb 0.0s done
+#18 exporting manifest list sha256:89a025f234f10c6497b6f37cfe4fd98c2c13eb061f90d284dc2a5beffed2e126 done
+#18 naming to docker.io/library/tutor-platform-local-education:latest done
+#18 unpacking to docker.io/library/tutor-platform-local-education:latest 0.0s done
+#18 DONE 0.1s
+
+#19 [education] resolving provenance for metadata file
+#19 DONE 0.0s
+
+#20 [nginx internal] load metadata for docker.io/library/nginx:stable-alpine
+#20 DONE 0.6s
+
+#21 [nginx internal] load .dockerignore
+#21 transferring context: 105B done
+#21 DONE 0.0s
+
+#22 [nginx internal] load build context
+#22 transferring context: 199B done
+#22 DONE 0.0s
+
+#23 [nginx 1/3] FROM docker.io/library/nginx:stable-alpine@sha256:caf4e1e032a20f9c3c5e28fc7f25ffd768ad8677b4975c54193075997b3a97e3
+#23 resolve docker.io/library/nginx:stable-alpine@sha256:caf4e1e032a20f9c3c5e28fc7f25ffd768ad8677b4975c54193075997b3a97e3 0.0s done
+#23 DONE 0.0s
+
+#24 [nginx 2/3] COPY Docker/nginx/default.conf.template /etc/nginx/templates/default.conf.template
+#24 CACHED
+
+#25 [nginx 3/3] COPY Docker/nginx/html/ /usr/share/nginx/html/
+#25 CACHED
+
+#26 [nginx] exporting to image
+#26 exporting layers done
+#26 exporting manifest sha256:c79dd285be40080a496f818a85b81e991bfd4d820235ac31834c64ac90e51b9e done
+#26 exporting config sha256:6383448c6cce1447cc4720eae621e1f85df293b6b263a4f51bd138b485edfff3 done
+#26 exporting attestation manifest sha256:2a688c1801206ea2acf9c1dafab32868de9055e9d5cb24ec1470ae657ef66d8f 0.0s done
+#26 exporting manifest list sha256:56d5cb2139fd9e717598cddd5047360eccc604202536139bacc50d5f754d98f3 0.0s done
+#26 naming to docker.io/library/tutor-platform-local-nginx:latest done
+#26 unpacking to docker.io/library/tutor-platform-local-nginx:latest done
+#26 DONE 0.1s
+
+#27 [nginx] resolving provenance for metadata file
+#27 DONE 0.0s
+ tutor-platform-local-education  Built
+ tutor-platform-local-nginx  Built
+ Container tutor-platform-local-minio-1  Running
+ Container tutor-platform-local-kafka-1  Running
+ Container tutor-platform-local-redis-1  Running
+ Container tutor-platform-local-nginx-1  Recreate
+ Container tutor-platform-local-education-postgres-1  Recreate
+ Container tutor-platform-local-postgres-1  Running
+ Container tutor-platform-local-education-postgres-1  Recreated
+ Container tutor-platform-local-education-1  Recreate
+ Container tutor-platform-local-education-1  Recreated
+ Container tutor-platform-local-nginx-1  Recreated
+ Container tutor-platform-local-nginx-1  Starting
+ Container tutor-platform-local-education-postgres-1  Starting
+ Container tutor-platform-local-minio-1  Waiting
+ Container tutor-platform-local-nginx-1  Started
+ Container tutor-platform-local-education-postgres-1  Started
+ Container tutor-platform-local-minio-1  Healthy
+ Container tutor-platform-local-minio-init-1  Starting
+ Container tutor-platform-local-minio-init-1  Started
+ Container tutor-platform-local-education-postgres-1  Waiting
+ Container tutor-platform-local-minio-init-1  Waiting
+ Container tutor-platform-local-minio-init-1  Exited
+ Container tutor-platform-local-education-postgres-1  Healthy
+ Container tutor-platform-local-education-1  Starting
+ Container tutor-platform-local-education-1  Started

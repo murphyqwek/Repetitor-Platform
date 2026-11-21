@@ -1,0 +1,42 @@
+Picked up JAVA_TOOL_OPTIONS: -Duser.timezone=UTC
+> Task :compileJava UP-TO-DATE
+> Task :processResources UP-TO-DATE
+> Task :classes UP-TO-DATE
+> Task :resolveMainClassName
+> Task :bootJar
+> Task :compileTestJava UP-TO-DATE
+> Task :processTestResources NO-SOURCE
+> Task :testClasses UP-TO-DATE
+
+> Task :test
+Picked up JAVA_TOOL_OPTIONS: -Duser.timezone=UTC
+
+Java HotSpot(TM) 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+
+> Task :test
+
+EducationContextTest > unavailableS3LowersReadinessWithoutExposingException() PASSED
+
+EducationContextTest > contextLoadsAndFlywayInitializesRealPostgresInUtc() PASSED
+
+EducationContextTest > probesArePublicAndOtherPathsAreClosed() PASSED
+
+StorageUnitTest > keysAreUniqueAndHaveSeparatePrefixes() PASSED
+
+StorageUnitTest > rejectsMissingSecretsAtContextStartupWithoutLeakingOtherCredentials() PASSED
+
+StorageUnitTest > validatesConfigurationAndRedactsCredentials() PASSED
+
+StorageUnitTest > closesUploadStreamEvenWhenValidationFails() PASSED
+
+StorageUnitTest > validatesSafeMetadataWithoutApplyingChatLimitsToMaterials() PASSED
+
+2026-11-20T14:18:02.022Z  INFO 27020 --- [education-service] [ionShutdownHook] o.s.boot.tomcat.GracefulShutdown         : Commencing graceful shutdown. Waiting for active requests to complete
+2026-11-20T14:18:02.742Z  INFO 27020 --- [education-service] [tomcat-shutdown] o.s.boot.tomcat.GracefulShutdown         : Graceful shutdown complete
+2026-11-20T14:18:02.746Z  INFO 27020 --- [education-service] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-11-20T14:18:02.748Z  INFO 27020 --- [education-service] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-11-20T14:18:02.750Z  INFO 27020 --- [education-service] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+
+BUILD SUCCESSFUL in 11s
+6 actionable tasks: 3 executed, 3 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.8.2/userguide/configuration_cache_enabling.html

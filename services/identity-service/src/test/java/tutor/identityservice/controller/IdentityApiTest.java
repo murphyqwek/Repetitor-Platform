@@ -54,6 +54,44 @@ class IdentityApiTest {
     }
 
     @Test
+    void lookupAllowsTeacherAndAdminAndExposesOnlyDirectoryFields() throws Exception {
+        UUID id = UUID.randomUUID();
+        when(directory.lookup(id)).thenReturn(new DirectoryService.User(id, "Иван", "Иванов", null,
+                java.util.Set.of(tutor.identityservice.entity.Role.STUDENT), true));
+        for (String role : new String[]{"TEACHER", "ADMIN"}) {
+            mvc.perform(get("/api/v1/directory/users/" + id).with(actor(role)))
+                    .andExpect(status().isOk()).andExpect(header().string("Cache-Control", "no-store"))
+                    .andExpect(jsonPath("$.id").value(id.toString())).andExpect(jsonPath("$.blocked").value(true))
+                    .andExpect(jsonPath("$.roles[0]").value("STUDENT"))
+                    .andExpect(jsonPath("$.login").doesNotExist()).andExpect(jsonPath("$.passwordHash").doesNotExist())
+                    .andExpect(jsonPath("$.grade").doesNotExist()).andExpect(jsonPath("$.createdAt").doesNotExist());
+        }
+    }
+
+    @Test
+    void lookupRejectsAnonymousStudentParentBlockedAndIncompleteActors() throws Exception {
+        String path = "/api/v1/directory/users/" + UUID.randomUUID();
+        mvc.perform(get(path)).andExpect(status().isUnauthorized());
+        for (String role : new String[]{"STUDENT", "PARENT"}) {
+            mvc.perform(get(path).with(actor(role))).andExpect(status().isForbidden());
+        }
+        user.setBlocked(true);
+        mvc.perform(get(path).with(actor("TEACHER"))).andExpect(status().isForbidden());
+        user.setBlocked(false);
+        user.setNameRequested(false);
+        mvc.perform(get(path).with(actor("TEACHER"))).andExpect(status().isForbidden());
+        verifyNoInteractions(directory);
+    }
+
+    @Test
+    void lookupValidatesUuidAndPreservesMissingUser404() throws Exception {
+        mvc.perform(get("/api/v1/directory/users/not-a-uuid").with(actor("TEACHER"))).andExpect(status().isBadRequest());
+        UUID id = UUID.randomUUID();
+        when(directory.lookup(id)).thenThrow(new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND));
+        mvc.perform(get("/api/v1/directory/users/" + id).with(actor("ADMIN"))).andExpect(status().isNotFound());
+    }
+
+    @Test
     void parentCannotReviewRequestsOrSearchDirectory() throws Exception {
         mvc.perform(get("/api/v1/student-requests").with(actor("PARENT"))).andExpect(status().isForbidden());
         mvc.perform(get("/api/v1/directory/users?type=STUDENT&fio=Иван").with(actor("PARENT")))

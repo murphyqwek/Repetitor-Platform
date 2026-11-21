@@ -1,0 +1,149 @@
+#1 [internal] load local bake definitions
+#1 reading from stdin 1.06kB done
+#1 DONE 0.0s
+
+#2 [education internal] load build definition from Dockerfile
+#2 transferring dockerfile: 657B done
+#2 DONE 0.0s
+
+#3 [nginx internal] load build definition from Dockerfile
+#3 transferring dockerfile: 239B done
+#3 DONE 0.0s
+
+#4 [education internal] load metadata for docker.io/library/eclipse-temurin:17-jre@sha256:fb2cec8da84e3f086b59e29bf432d372e396fe0c247adcfb89303a28c2e313c0
+#4 DONE 0.0s
+
+#5 [education internal] load metadata for docker.io/library/eclipse-temurin:17-jdk@sha256:fbe9d94debbe24e529acfe235b98f065edea050a2dc00129b7d86261ce3248c8
+#5 DONE 0.0s
+
+#6 [auth] library/nginx:pull token for registry-1.docker.io
+#6 DONE 0.0s
+
+#7 [education internal] load .dockerignore
+#7 transferring context: 116B done
+#7 DONE 0.0s
+
+#8 [education build 1/7] FROM docker.io/library/eclipse-temurin:17-jdk@sha256:fbe9d94debbe24e529acfe235b98f065edea050a2dc00129b7d86261ce3248c8
+#8 resolve docker.io/library/eclipse-temurin:17-jdk@sha256:fbe9d94debbe24e529acfe235b98f065edea050a2dc00129b7d86261ce3248c8 0.0s done
+#8 DONE 0.0s
+
+#9 [education stage-1 1/3] FROM docker.io/library/eclipse-temurin:17-jre@sha256:fb2cec8da84e3f086b59e29bf432d372e396fe0c247adcfb89303a28c2e313c0
+#9 resolve docker.io/library/eclipse-temurin:17-jre@sha256:fb2cec8da84e3f086b59e29bf432d372e396fe0c247adcfb89303a28c2e313c0 0.0s done
+#9 DONE 0.0s
+
+#10 [education internal] load build context
+#10 transferring context: 16.63kB done
+#10 DONE 0.0s
+
+#11 [education build 2/7] WORKDIR /workspace
+#11 CACHED
+
+#12 [education build 4/7] COPY gradle/ gradle/
+#12 CACHED
+
+#13 [education build 3/7] COPY gradlew settings.gradle.kts build.gradle.kts ./
+#13 CACHED
+
+#14 [education build 5/7] RUN chmod +x gradlew && ./gradlew --no-daemon help
+#14 CACHED
+
+#15 [education build 6/7] COPY src/main/ src/main/
+#15 DONE 0.0s
+
+#16 [education build 7/7] RUN ./gradlew --no-daemon bootJar
+#16 0.655 To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.8.2/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+#16 ...
+
+#17 [nginx internal] load metadata for docker.io/library/nginx:stable-alpine
+#17 DONE 0.8s
+
+#18 [nginx internal] load .dockerignore
+#18 transferring context: 105B done
+#18 DONE 0.1s
+
+#19 [nginx internal] load build context
+#19 transferring context: 199B done
+#19 DONE 0.0s
+
+#20 [nginx 1/3] FROM docker.io/library/nginx:stable-alpine@sha256:caf4e1e032a20f9c3c5e28fc7f25ffd768ad8677b4975c54193075997b3a97e3
+#20 resolve docker.io/library/nginx:stable-alpine@sha256:caf4e1e032a20f9c3c5e28fc7f25ffd768ad8677b4975c54193075997b3a97e3 0.0s done
+#20 DONE 0.0s
+
+#21 [nginx 2/3] COPY Docker/nginx/default.conf.template /etc/nginx/templates/default.conf.template
+#21 CACHED
+
+#22 [nginx 3/3] COPY Docker/nginx/html/ /usr/share/nginx/html/
+#22 CACHED
+
+#23 [nginx] exporting to image
+#23 exporting layers done
+#23 exporting manifest sha256:c79dd285be40080a496f818a85b81e991bfd4d820235ac31834c64ac90e51b9e done
+#23 exporting config sha256:6383448c6cce1447cc4720eae621e1f85df293b6b263a4f51bd138b485edfff3 done
+#23 exporting attestation manifest sha256:6a1134c3ac5fce237d6f2f5bfb65b7111b8bb313f90db34b7836267a7e0d1a06 0.0s done
+#23 exporting manifest list sha256:18a14270d9a48355d8b03b3a9239cd439af30dfc5df7a8006331c535e6162bb9 done
+#23 naming to docker.io/library/tutor-platform-local-nginx:latest done
+#23 unpacking to docker.io/library/tutor-platform-local-nginx:latest done
+#23 DONE 0.1s
+
+#16 [education build 7/7] RUN ./gradlew --no-daemon bootJar
+#16 ...
+
+#24 [nginx] resolving provenance for metadata file
+#24 DONE 0.0s
+
+#16 [education build 7/7] RUN ./gradlew --no-daemon bootJar
+#16 1.455 Daemon will be stopped at the end of the build 
+#16 24.75 > Task :compileJava
+#16 24.75 > Task :processResources
+#16 24.75 > Task :classes
+#16 24.75 > Task :resolveMainClassName
+#16 27.75 > Task :bootJar
+#16 27.75 
+#16 27.75 BUILD SUCCESSFUL in 27s
+#16 27.75 4 actionable tasks: 4 executed
+#16 27.75 Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.8.2/userguide/configuration_cache_enabling.html
+#16 DONE 28.0s
+
+#25 [education stage-1 2/3] WORKDIR /app
+#25 CACHED
+
+#26 [education stage-1 3/3] COPY --from=build /workspace/build/libs/education-service.jar /app/app.jar
+#26 DONE 0.1s
+
+#27 [education] exporting to image
+#27 exporting layers
+#27 exporting layers 1.5s done
+#27 exporting manifest sha256:e2d620af2ff53860898564aea8a6ad602aa653ace5e9211fd5c244c32a8a724f done
+#27 exporting config sha256:c0d01f574ec2cfbcffd75f30ca3111cf81d1e022ec7e9014dfa1c98a4e38123d done
+#27 exporting attestation manifest sha256:d079c436628408961b4f72ea6bbeed9f0083960f0f7fd239cda3550d3ee13a8d 0.0s done
+#27 exporting manifest list sha256:ede53776fa22fbeffc197a591a1c5245ebc4d2fc6e36dd141108384f5c017eca done
+#27 naming to docker.io/library/tutor-platform-local-education:latest done
+#27 unpacking to docker.io/library/tutor-platform-local-education:latest
+#27 unpacking to docker.io/library/tutor-platform-local-education:latest 0.3s done
+#27 DONE 1.9s
+
+#28 [education] resolving provenance for metadata file
+#28 DONE 0.0s
+ tutor-platform-local-education  Built
+ tutor-platform-local-nginx  Built
+ Container tutor-platform-local-redis-1  Running
+ Container tutor-platform-local-postgres-1  Running
+ Container tutor-platform-local-nginx-1  Recreate
+ Container tutor-platform-local-kafka-1  Running
+ Container tutor-platform-local-education-postgres-1  Running
+ Container tutor-platform-local-minio-1  Running
+ Container tutor-platform-local-education-1  Recreate
+ Container tutor-platform-local-nginx-1  Recreated
+ Container tutor-platform-local-education-1  Recreated
+ Container tutor-platform-local-nginx-1  Starting
+ Container tutor-platform-local-minio-1  Waiting
+ Container tutor-platform-local-nginx-1  Started
+ Container tutor-platform-local-minio-1  Healthy
+ Container tutor-platform-local-minio-init-1  Starting
+ Container tutor-platform-local-minio-init-1  Started
+ Container tutor-platform-local-minio-init-1  Waiting
+ Container tutor-platform-local-education-postgres-1  Waiting
+ Container tutor-platform-local-education-postgres-1  Healthy
+ Container tutor-platform-local-minio-init-1  Exited
+ Container tutor-platform-local-education-1  Starting
+ Container tutor-platform-local-education-1  Started

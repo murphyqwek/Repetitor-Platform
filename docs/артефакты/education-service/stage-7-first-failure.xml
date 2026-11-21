@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="tutor.educationservice.ConflictHttpTest" tests="13" skipped="0" failures="9" errors="0" timestamp="2026-11-21T10:33:43.559Z" hostname="DESKTOP-LIV018F" time="9.879">
+  <properties/>
+  <testcase name="touchingIntervalsAreAllowedAndMoveExcludesItself()" classname="tutor.educationservice.ConflictHttpTest" time="0.663"/>
+  <testcase name="enrollmentFindsFarFutureMoveFromStoppedSeriesAndIgnoresNonoverlappingStoppedRules()" classname="tutor.educationservice.ConflictHttpTest" time="0.091">
+    <failure message="java.lang.AssertionError: &#13;&#10;Expecting actual:&#13;&#10;  &quot;{&quot;detail&quot;:&quot;Schedule conflicts require confirmation&quot;,&quot;instance&quot;:&quot;/api/v1/courses/282afc81-4fb2-4e3c-943d-b35e79bc5935/students&quot;,&quot;status&quot;:409,&quot;title&quot;:&quot;Conflict&quot;,&quot;code&quot;:&quot;SCHEDULE_CONFLICTS&quot;,&quot;conflicts&quot;:[{&quot;subjectType&quot;:&quot;STUDENT&quot;,&quot;subjectId&quot;:&quot;758391bc-28d4-4cb1-ab50-211a4b1e6258&quot;,&quot;startsAt&quot;:&quot;2080-01-01T14:30:00Z&quot;,&quot;endsAt&quot;:&quot;2080-01-01T15:00:00Z&quot;}]}&quot;&#13;&#10;not to contain:&#13;&#10;  [&quot;stackTrace&quot;, &quot;private-upstream-diagnostic&quot;, &quot;&quot;startsAt&quot;:&quot;, &quot;&quot;courseId&quot;:&quot;]&#13;&#10;but found:&#13;&#10;  [&quot;&quot;startsAt&quot;:&quot;]&#13;&#10;" type="java.lang.AssertionError">java.lang.AssertionError: 
+Expecting actual:
+  &quot;{&quot;detail&quot;:&quot;Schedule conflicts require confirmation&quot;,&quot;instance&quot;:&quot;/api/v1/courses/282afc81-4fb2-4e3c-943d-b35e79bc5935/students&quot;,&quot;status&quot;:409,&quot;title&quot;:&quot;Conflict&quot;,&quot;code&quot;:&quot;SCHEDULE_CONFLICTS&quot;,&quot;conflicts&quot;:[{&quot;subjectType&quot;:&quot;STUDENT&quot;,&quot;subjectId&quot;:&quot;758391bc-28d4-4cb1-ab50-211a4b1e6258&quot;,&quot;startsAt&quot;:&quot;2080-01-01T14:30:00Z&quot;,&quot;endsAt&quot;:&quot;2080-01-01T15:00:00Z&quot;}]}&quot;
+not to contain:
+  [&quot;stackTrace&quot;, &quot;private-upstream-diagnostic&quot;, &quot;&quot;startsAt&quot;:&quot;, &quot;&quot;courseId&quot;:&quot;]
+but found:
+  [&quot;&quot;startsAt&quot;:&quot;]
+
+	at tutor.educationservice.ConflictHttpTest.problem(ConflictHttpTest.java:384)
+	at tutor.educationservice.ConflictHttpTest.conflict(ConflictHttpTest.java:333)
+	at tutor.educationservice.ConflictHttpTest.enrollmentFindsFarFutureMoveFromStoppedSeriesAndIgnoresNonoverlappingStoppedRules(ConflictHttpTest.java:243)
+</failure>
+  </testcase>
+  <testcase name="v5UpgradePreservesExistingDataAndAddsOutboxWithoutResourceForeignKeys()" classname="tutor.educationservice.ConflictHttpTest" time="0.291"/>
+  <testcase name="newSeriesChecksOnlyFirstThirtyMoscowDaysAndLeavesNoRuleOn409()" classname="tutor.educationservice.ConflictHttpTest" time="0.041">
+    <failure message="java.lang.AssertionError: &#13;&#10;Expecting actual:&#13;&#10;  &quot;{&quot;detail&quot;:&quot;Schedule conflicts require confirmation&quot;,&quot;instance&quot;:&quot;/api/v1/courses/2aba08f1-f7e5-476e-b6ec-87df753fd874/lesson-series&quot;,&quot;status&quot;:409,&quot;title&quot;:&quot;Conflict&quot;,&quot;code&quot;:&quot;SCHEDULE_CONFLICTS&quot;,&quot;conflicts&quot;:[{&quot;subjectType&quot;:&quot;TEACHER&quot;,&quot;subjectId&quot;:&quot;b4045410-0090-467f-a13c-ed0dca5d9267&quot;,&quot;startsAt&quot;:&quot;2026-12-15T14:00:00Z&quot;,&quot;endsAt&quot;:&quot;2026-12-15T15:00:00Z&quot;}]}&quot;&#13;&#10;not to contain:&#13;&#10;  [&quot;stackTrace&quot;, &quot;private-upstream-diagnostic&quot;, &quot;&quot;startsAt&quot;:&quot;, &quot;&quot;courseId&quot;:&quot;]&#13;&#10;but found:&#13;&#10;  [&quot;&quot;startsAt&quot;:&quot;]&#13;&#10;" type="java.lang.AssertionError">java.lang.AssertionError: 
+Expecting actual:
+  &quot;{&quot;detail&quot;:&quot;Schedule conflicts require confirmation&quot;,&quot;instance&quot;:&quot;/api/v1/courses/2aba08f1-f7e5-476e-b6ec-87df753fd874/lesson-series&quot;,&quot;status&quot;:409,&quot;title&quot;:&quot;Conflict&quot;,&quot;code&quot;:&quot;SCHEDULE_CONFLICTS&quot;,&quot;conflicts&quot;:[{&quot;subjectType&quot;:&quot;TEACHER&quot;,&quot;subjectId&quot;:&quot;b4045410-0090-467f-a13c-ed0dca5d9267&quot;,&quot;startsAt&quot;:&quot;2026-12-15T14:00:00Z&quot;,&quot;endsAt&quot;:&quot;2026-12-15T15:00:00Z&quot;}]}&quot;
+not to contain:
+  [&quot;stackTrace&quot;, &quot;private-upstream-diagnostic&quot;, &quot;&quot;startsAt&quot;:&quot;, &quot;&quot;courseId&quot;:&quot;]
+but found:
+  [&quot;&quot;startsAt&quot;:&quot;]
+
+	at tutor.educationservice.ConflictHttpTest.problem(ConflictHttpTest.java:384)
+	at tutor.educationservice.ConflictHttpTest.conflict(ConflictHttpTest.java:333)
+	at tutor.educationservice.ConflictHttpTest.newSeriesChecksOnlyFirstThirtyMoscowDaysAndLeavesNoRuleOn409(ConflictHttpTest.java:178)
+</failure>
+  </testcase>
+  <testcase name="weeklyExceptionsSuppressOriginalAndExposeActualMovedTimeIncludingStoppedRules()" classname="tutor.educationservice.ConflictHttpTest" time="0.067">
+    <failure message="java.lang.AssertionError: &#13;&#10;Expecting actual:&#13;&#10;  &quot;{&quot;detail&quot;:&quot;Schedule conflicts require confirmation&quot;,&quot;instance&quot;:&quot;/api/v1/courses/9cd0df99-92da-4b54-bd96-c68fd48c335a/lessons&quot;,&quot;status&quot;:409,&quot;title&quot;:&quot;Conflict&quot;,&quot;code&quot;:&quot;SCHEDULE_CONFLICTS&quot;,&quot;conflicts&quot;:[{&quot;subjectType&quot;:&quot;TEACHER&quot;,&quot;subjectId&quot;:&quot;b4045410-0090-467f-a13c-ed0dca5d9267&quot;,&quot;startsAt&quot;:&quot;2026-12-02T14:30:00Z&quot;,&quot;endsAt&quot;:&quot;2026-12-02T15:00:00Z&quot;}]}&quot;&#13;&#10;not to contain:&#13;&#10;  [&quot;stackTrace&quot;, &quot;private-upstream-diagnostic&quot;, &quot;&quot;startsAt&quot;:&quot;, &quot;&quot;courseId&quot;:&quot;]&#13;&#10;but found:&#13;&#10;  [&quot;&quot;startsAt&quot;:&quot;]&#13;&#10;" type="java.lang.AssertionError">java.lang.AssertionError: 
+Expecting actual:
+  &quot;{&quot;detail&quot;:&quot;Schedule conflicts require confirmation&quot;,&quot;instance&quot;:&quot;/api/v1/courses/9cd0df99-92da-4b54-bd96-c68fd48c335a/lessons&quot;,&quot;status&quot;:409,&quot;title&quot;:&quot;Conflict&quot;,&quot;code&quot;:&quot;SCHEDULE_CONFLICTS&quot;,&quot;conflicts&quot;:[{&quot;subjectType&quot;:&quot;TEACHER&quot;,&quot;subjectId&quot;:&quot;b4045410-0090-467f-a13c-ed0dca5d9267&quot;,&quot;startsAt&quot;:&quot;2026-12-02T14:30:00Z&quot;,&quot;endsAt&quot;:&quot;2026-12-02T15:00:00Z&quot;}]}&quot;
+not to contain:
+  [&quot;stackTrace&quot;, &quot;private-upstream-diagnostic&quot;, &quot;&quot;startsAt&quot;:&quot;, &quot;&quot;courseId&quot;:&quot;]
+but found:
+  [&quot;&quot;startsAt&quot;:&quot;]
+
+	at tutor.educationservice.ConflictHttpTest.problem(ConflictHttpTest.java:384)
+	at tutor.educationservice.ConflictHttpTest.conflict(ConflictHttpTest.java:333)
+	at tutor.educationservice.ConflictHttpTest.weeklyExceptionsSuppressOriginalAndExposeActualMovedTimeIncludingStoppedRules(ConflictHttpTest.java:166)
+</failure>
+  </testcase>
+  <testcase name="enrollmentChecksFarFutureWeeklyPatternsBeyondThirtyDays()" classname="tutor.educationservice.ConflictHttpTest" time="0.031">
+    <failure message="java.lang.AssertionError: &#13;&#10;Expecting actual:&#13;&#10;  &quot;{&quot;detail&quot;:&quot;Schedule conflicts require confirmation&quot;,&quot;instance&quot;:&quot;/api/v1/courses/29322114-43ba-4eaa-a1b9-2f9aabc33007/students&quot;,&quot;status&quot;:409,&quot;title&quot;:&quot;Conflict&quot;,&quot;code&quot;:&quot;SCHEDULE_CONFLICTS&quot;,&quot;conflicts&quot;:[{&quot;subjectType&quot;:&quot;STUDENT&quot;,&quot;subjectId&quot;:&quot;758391bc-28d4-4cb1-ab50-211a4b1e6258&quot;,&quot;startsAt&quot;:&quot;2099-01-06T17:00:00Z&quot;,&quot;endsAt&quot;:&quot;2099-01-06T18:30:00Z&quot;}]}&quot;&#13;&#10;not to contain:&#13;&#10;  [&quot;stackTrace&quot;, &quot;private-upstream-diagnostic&quot;, &quot;&quot;startsAt&quot;:&quot;, &quot;&quot;courseId&quot;:&quot;]&#13;&#10;but found:&#13;&#10;  [&quot;&quot;startsAt&quot;:&quot;]&#13;&#10;" type="java.lang.AssertionError">java.lang.AssertionError: 
+Expecting actual:
+  &quot;{&quot;detail&quot;:&quot;Schedule conflicts require confirmation&quot;,&quot;instance&quot;:&quot;/api/v1/courses/29322114-43ba-4eaa-a1b9-2f9aabc33007/students&quot;,&quot;status&quot;:409,&quot;title&quot;:&quot;Conflict&quot;,&quot;code&quot;:&quot;SCHEDULE_CONFLICTS&quot;,&quot;conflicts&quot;:[{&quot;subjectType&quot;:&quot;STUDENT&quot;,&quot;subjectId&quot;:&quot;758391bc-28d4-4cb1-ab50-211a4b1e6258&quot;,&quot;startsAt&quot;:&quot;2099-01-06T17:00:00Z&quot;,&quot;endsAt&quot;:&quot;2099-01-06T18:30:00Z&quot;}]}&quot;
+not to contain:
+  [&quot;stackTrace&quot;, &quot;private-upstream-diagnostic&quot;, &quot;&quot;startsAt&quot;:&quot;, &quot;&quot;courseId&quot;:&quot;]
+but found:
+  [&quot;&quot;startsAt&quot;:&quot;]
+
+	at tutor.educationservice.ConflictHttpTest.problem(ConflictHttpTest.java:384)
+	at tutor.educationservice.ConflictHttpTest.conflict(ConflictHttpTest.java:333)
+	at tutor.educationservice.ConflictHttpTest.enrollmentChecksFarFutureWeeklyPatternsBeyondThirtyDays(ConflictHttpTest.java:213)
+</failure>
+  </testcase>
+  <testcase name="enrolledStudentConflictIsFoundAcrossOtherTeachersCourses()" classname="tutor.educationservice.ConflictHttpTest" time="0.025">
+    <failure message="java.lang.AssertionError: &#13;&#10;Expecting actual:&#13;&#10;  &quot;{&quot;detail&quot;:&quot;Schedule conflicts require confirmation&quot;,&quot;instance&quot;:&quot;/api/v1/courses/87da7bb4-c279-423b-9fad-eecf92c45afc/lessons&quot;,&quot;status&quot;:409,&quot;title&quot;:&quot;Conflict&quot;,&quot;code&quot;:&quot;SCHEDULE_CONFLICTS&quot;,&quot;conflicts&quot;:[{&quot;subjectType&quot;:&quot;STUDENT&quot;,&quot;subjectId&quot;:&quot;758391bc-28d4-4cb1-ab50-211a4b1e6258&quot;,&quot;startsAt&quot;:&quot;2026-12-01T14:30:00Z&quot;,&quot;endsAt&quot;:&quot;2026-12-01T15:00:00Z&quot;}]}&quot;&#13;&#10;not to contain:&#13;&#10;  [&quot;stackTrace&quot;, &quot;private-upstream-diagnostic&quot;, &quot;&quot;startsAt&quot;:&quot;, &quot;&quot;courseId&quot;:&quot;]&#13;&#10;but found:&#13;&#10;  [&quot;&quot;startsAt&quot;:&quot;]&#13;&#10;" type="java.lang.AssertionError">java.lang.AssertionError: 
+Expecting actual:
+  &quot;{&quot;detail&quot;:&quot;Schedule conflicts require confirmation&quot;,&quot;instance&quot;:&quot;/api/v1/courses/87da7bb4-c279-423b-9fad-eecf92c45afc/lessons&quot;,&quot;status&quot;:409,&quot;title&quot;:&quot;Conflict&quot;,&quot;code&quot;:&quot;SCHEDULE_CONFLICTS&quot;,&quot;conflicts&quot;:[{&quot;subjectType&quot;:&quot;STUDENT&quot;,&quot;subjectId&quot;:&quot;758391bc-28d4-4cb1-ab50-211a4b1e6258&quot;,&quot;startsAt&quot;:&quot;2026-12-01T14:30:00Z&quot;,&quot;endsAt&quot;:&quot;2026-12-01T15:00:00Z&quot;}]}&quot;
+not to contain:
+  [&quot;stackTrace&quot;, &quot;private-upstream-diagnostic&quot;, &quot;&quot;startsAt&quot;:&quot;, &quot;&quot;courseId&quot;:&quot;]
+but found:
+  [&quot;&quot;startsAt&quot;:&quot;]
+
+	at tutor.educationservice.ConflictHttpTest.problem(ConflictHttpTest.java:384)
+	at tutor.educationservice.ConflictHttpTest.conflict(ConflictHttpTest.java:333)
+	at tutor.educationservice.ConflictHttpTest.enrolledStudentConflictIsFoundAcrossOtherTeachersCourses(ConflictHttpTest.java:115)
+</failure>
+  </testcase>
+  <testcase name="enrollmentDoesNotMissWeeklyConflictAfterCancelledFirstWeeks()" classname="tutor.educationservice.ConflictHttpTest" time="0.036">
+    <failure message="java.lang.AssertionError: &#13;&#10;Expecting actual:&#13;&#10;  &quot;{&quot;detail&quot;:&quot;Schedule conflicts require confirmation&quot;,&quot;instance&quot;:&quot;/api/v1/courses/e17fcd3b-1aaa-4276-bb14-050617b72327/students&quot;,&quot;status&quot;:409,&quot;title&quot;:&quot;Conflict&quot;,&quot;code&quot;:&quot;SCHEDULE_CONFLICTS&quot;,&quot;conflicts&quot;:[{&quot;subjectType&quot;:&quot;STUDENT&quot;,&quot;subjectId&quot;:&quot;758391bc-28d4-4cb1-ab50-211a4b1e6258&quot;,&quot;startsAt&quot;:&quot;2026-12-22T17:00:00Z&quot;,&quot;endsAt&quot;:&quot;2026-12-22T18:30:00Z&quot;}]}&quot;&#13;&#10;not to contain:&#13;&#10;  [&quot;stackTrace&quot;, &quot;private-upstream-diagnostic&quot;, &quot;&quot;startsAt&quot;:&quot;, &quot;&quot;courseId&quot;:&quot;]&#13;&#10;but found:&#13;&#10;  [&quot;&quot;startsAt&quot;:&quot;]&#13;&#10;" type="java.lang.AssertionError">java.lang.AssertionError: 
+Expecting actual:
+  &quot;{&quot;detail&quot;:&quot;Schedule conflicts require confirmation&quot;,&quot;instance&quot;:&quot;/api/v1/courses/e17fcd3b-1aaa-4276-bb14-050617b72327/students&quot;,&quot;status&quot;:409,&quot;title&quot;:&quot;Conflict&quot;,&quot;code&quot;:&quot;SCHEDULE_CONFLICTS&quot;,&quot;conflicts&quot;:[{&quot;subjectType&quot;:&quot;STUDENT&quot;,&quot;subjectId&quot;:&quot;758391bc-28d4-4cb1-ab50-211a4b1e6258&quot;,&quot;startsAt&quot;:&quot;2026-12-22T17:00:00Z&quot;,&quot;endsAt&quot;:&quot;2026-12-22T18:30:00Z&quot;}]}&quot;
+not to contain:
+  [&quot;stackTrace&quot;, &quot;private-upstream-diagnostic&quot;, &quot;&quot;startsAt&quot;:&quot;, &quot;&quot;courseId&quot;:&quot;]
+but found:
+  [&quot;&quot;startsAt&quot;:&quot;]
+
+	at tutor.educationservice.ConflictHttpTest.problem(ConflictHttpTest.java:384)
+	at tutor.educationservice.ConflictHttpTest.conflict(ConflictHttpTest.java:333)
+	at tutor.educationservice.ConflictHttpTest.enrollmentDoesNotMissWeeklyConflictAfterCancelledFirstWeeks(ConflictHttpTest.java:230)
+</failure>
+  </testcase>
+  <testcase name="cancelledAndStoppedEventsUseActualOldTimesAndDoNotMultiplyOnRetries()" classname="tutor.educationservice.ConflictHttpTest" time="0.117"/>
+  <testcase name="teacherConflictIsPrivateAndRequiresConfirmationWithoutWritingLessonOrOutbox()" classname="tutor.educationservice.ConflictHttpTest" time="0.022">
+    <failure message="java.lang.AssertionError: &#13;&#10;Expecting actual:&#13;&#10;  &quot;{&quot;detail&quot;:&quot;Schedule conflicts require confirmation&quot;,&quot;instance&quot;:&quot;/api/v1/courses/1fabbb21-2b62-4897-a309-9f41b60ef099/lessons&quot;,&quot;status&quot;:409,&quot;title&quot;:&quot;Conflict&quot;,&quot;code&quot;:&quot;SCHEDULE_CONFLICTS&quot;,&quot;conflicts&quot;:[{&quot;subjectType&quot;:&quot;TEACHER&quot;,&quot;subjectId&quot;:&quot;b4045410-0090-467f-a13c-ed0dca5d9267&quot;,&quot;startsAt&quot;:&quot;2026-12-01T14:30:00Z&quot;,&quot;endsAt&quot;:&quot;2026-12-01T15:00:00Z&quot;}]}&quot;&#13;&#10;not to contain:&#13;&#10;  [&quot;stackTrace&quot;, &quot;private-upstream-diagnostic&quot;, &quot;&quot;startsAt&quot;:&quot;, &quot;&quot;courseId&quot;:&quot;]&#13;&#10;but found:&#13;&#10;  [&quot;&quot;startsAt&quot;:&quot;]&#13;&#10;" type="java.lang.AssertionError">java.lang.AssertionError: 
+Expecting actual:
+  &quot;{&quot;detail&quot;:&quot;Schedule conflicts require confirmation&quot;,&quot;instance&quot;:&quot;/api/v1/courses/1fabbb21-2b62-4897-a309-9f41b60ef099/lessons&quot;,&quot;status&quot;:409,&quot;title&quot;:&quot;Conflict&quot;,&quot;code&quot;:&quot;SCHEDULE_CONFLICTS&quot;,&quot;conflicts&quot;:[{&quot;subjectType&quot;:&quot;TEACHER&quot;,&quot;subjectId&quot;:&quot;b4045410-0090-467f-a13c-ed0dca5d9267&quot;,&quot;startsAt&quot;:&quot;2026-12-01T14:30:00Z&quot;,&quot;endsAt&quot;:&quot;2026-12-01T15:00:00Z&quot;}]}&quot;
+not to contain:
+  [&quot;stackTrace&quot;, &quot;private-upstream-diagnostic&quot;, &quot;&quot;startsAt&quot;:&quot;, &quot;&quot;courseId&quot;:&quot;]
+but found:
+  [&quot;&quot;startsAt&quot;:&quot;]
+
+	at tutor.educationservice.ConflictHttpTest.problem(ConflictHttpTest.java:384)
+	at tutor.educationservice.ConflictHttpTest.conflict(ConflictHttpTest.java:333)
+	at tutor.educationservice.ConflictHttpTest.teacherConflictIsPrivateAndRequiresConfirmationWithoutWritingLessonOrOutbox(ConflictHttpTest.java:94)
+</failure>
+  </testcase>
+  <testcase name="rejectedMoveChangesNeitherScheduleNorOutboxAndConfirmedMovePreservesOldTime()" classname="tutor.educationservice.ConflictHttpTest" time="0.023">
+    <failure message="java.lang.AssertionError: &#13;&#10;Expecting actual:&#13;&#10;  &quot;{&quot;detail&quot;:&quot;Schedule conflicts require confirmation&quot;,&quot;instance&quot;:&quot;/api/v1/courses/a3730a92-f86d-4e28-a286-ba32552465e6/lessons/48391187-aa21-4024-a44e-31d1a908333c&quot;,&quot;status&quot;:409,&quot;title&quot;:&quot;Conflict&quot;,&quot;code&quot;:&quot;SCHEDULE_CONFLICTS&quot;,&quot;conflicts&quot;:[{&quot;subjectType&quot;:&quot;TEACHER&quot;,&quot;subjectId&quot;:&quot;b4045410-0090-467f-a13c-ed0dca5d9267&quot;,&quot;startsAt&quot;:&quot;2026-12-01T14:30:00Z&quot;,&quot;endsAt&quot;:&quot;2026-12-01T15:00:00Z&quot;}]}&quot;&#13;&#10;not to contain:&#13;&#10;  [&quot;stackTrace&quot;, &quot;private-upstream-diagnostic&quot;, &quot;&quot;startsAt&quot;:&quot;, &quot;&quot;courseId&quot;:&quot;]&#13;&#10;but found:&#13;&#10;  [&quot;&quot;startsAt&quot;:&quot;]&#13;&#10;" type="java.lang.AssertionError">java.lang.AssertionError: 
+Expecting actual:
+  &quot;{&quot;detail&quot;:&quot;Schedule conflicts require confirmation&quot;,&quot;instance&quot;:&quot;/api/v1/courses/a3730a92-f86d-4e28-a286-ba32552465e6/lessons/48391187-aa21-4024-a44e-31d1a908333c&quot;,&quot;status&quot;:409,&quot;title&quot;:&quot;Conflict&quot;,&quot;code&quot;:&quot;SCHEDULE_CONFLICTS&quot;,&quot;conflicts&quot;:[{&quot;subjectType&quot;:&quot;TEACHER&quot;,&quot;subjectId&quot;:&quot;b4045410-0090-467f-a13c-ed0dca5d9267&quot;,&quot;startsAt&quot;:&quot;2026-12-01T14:30:00Z&quot;,&quot;endsAt&quot;:&quot;2026-12-01T15:00:00Z&quot;}]}&quot;
+not to contain:
+  [&quot;stackTrace&quot;, &quot;private-upstream-diagnostic&quot;, &quot;&quot;startsAt&quot;:&quot;, &quot;&quot;courseId&quot;:&quot;]
+but found:
+  [&quot;&quot;startsAt&quot;:&quot;]
+
+	at tutor.educationservice.ConflictHttpTest.problem(ConflictHttpTest.java:384)
+	at tutor.educationservice.ConflictHttpTest.conflict(ConflictHttpTest.java:333)
+	at tutor.educationservice.ConflictHttpTest.rejectedMoveChangesNeitherScheduleNorOutboxAndConfirmedMovePreservesOldTime(ConflictHttpTest.java:145)
+</failure>
+  </testcase>
+  <testcase name="recurringMoveRequiresConfirmationAndExcludesStableIdentityOnSubsequentMoves()" classname="tutor.educationservice.ConflictHttpTest" time="0.029">
+    <failure message="org.opentest4j.AssertionFailedError: [{&quot;courseId&quot;:&quot;cbdb97b9-1666-493f-87de-1fdd9a6accbd&quot;,&quot;kind&quot;:&quot;RECURRING&quot;,&quot;singleLessonId&quot;:null,&quot;seriesId&quot;:&quot;4698e8e3-9e30-4dec-b422-2a0b3489459e&quot;,&quot;originalDate&quot;:&quot;2026-12-15&quot;,&quot;startsAt&quot;:&quot;2026-12-22T14:00:00Z&quot;,&quot;endsAt&quot;:&quot;2026-12-22T15:00:00Z&quot;,&quot;rescheduled&quot;:true}] &#13;&#10;expected: 409&#13;&#10; but was: 200" type="org.opentest4j.AssertionFailedError">org.opentest4j.AssertionFailedError: [{&quot;courseId&quot;:&quot;cbdb97b9-1666-493f-87de-1fdd9a6accbd&quot;,&quot;kind&quot;:&quot;RECURRING&quot;,&quot;singleLessonId&quot;:null,&quot;seriesId&quot;:&quot;4698e8e3-9e30-4dec-b422-2a0b3489459e&quot;,&quot;originalDate&quot;:&quot;2026-12-15&quot;,&quot;startsAt&quot;:&quot;2026-12-22T14:00:00Z&quot;,&quot;endsAt&quot;:&quot;2026-12-22T15:00:00Z&quot;,&quot;rescheduled&quot;:true}] 
+expected: 409
+ but was: 200
+	at tutor.educationservice.ConflictHttpTest.problem(ConflictHttpTest.java:381)
+	at tutor.educationservice.ConflictHttpTest.conflict(ConflictHttpTest.java:333)
+	at tutor.educationservice.ConflictHttpTest.recurringMoveRequiresConfirmationAndExcludesStableIdentityOnSubsequentMoves(ConflictHttpTest.java:194)
+</failure>
+  </testcase>
+  <testcase name="failedOutboxInsertRollsBackLessonUpdate()" classname="tutor.educationservice.ConflictHttpTest" time="0.033"/>
+  <system-out><![CDATA[13:33:43.689 [Test worker] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+13:33:43.692 [Test worker] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+13:33:43.699 [Test worker] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 2.0.5
+13:33:43.848 [Test worker] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.NpipeSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+13:33:44.035 [Test worker] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Npipe socket (npipe:////./pipe/docker_engine)
+13:33:44.036 [Test worker] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+13:33:44.050 [Test worker] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 28.5.2
+  API Version: 1.51
+  Operating System: Docker Desktop (containerized)
+  Total Memory: 15546 MB
+  Labels: 
+    com.docker.desktop.address=npipe://\\.\pipe\docker_cli
+13:33:44.196 [Test worker] INFO tc.testcontainers/ryuk:0.14.0 -- Creating container for image: testcontainers/ryuk:0.14.0
+13:33:44.355 [Test worker] INFO tc.testcontainers/ryuk:0.14.0 -- Container testcontainers/ryuk:0.14.0 is starting: 49a5fbfe7fd97a41218ae90931f878bd00767f0d569d65e887ed27d906aa8b1e
+13:33:44.700 [Test worker] INFO tc.testcontainers/ryuk:0.14.0 -- Container testcontainers/ryuk:0.14.0 started in PT0.5039418S
+13:33:44.704 [Test worker] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+13:33:44.704 [Test worker] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+13:33:44.705 [Test worker] INFO org.testcontainers.DockerClientFactory -- ?? Docker server version should be at least 1.6.0
+13:33:44.705 [Test worker] INFO tc.postgres:17-alpine -- Creating container for image: postgres:17-alpine
+13:33:44.771 [Test worker] INFO tc.postgres:17-alpine -- Container postgres:17-alpine is starting: 441c2203d769b0982763a2c99a3264a5debcd1cbdb1c0f0e6434f0c83a147055
+13:33:46.002 [Test worker] INFO tc.postgres:17-alpine -- Container postgres:17-alpine started in PT1.2966579S
+13:33:46.003 [Test worker] INFO tc.postgres:17-alpine -- Container is started (JDBC URL: jdbc:postgresql://localhost:60784/test?loggerLevel=OFF)
+13:33:46.067 [Test worker] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [tutor.educationservice.ConflictHttpTest]: ConflictHttpTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+13:33:46.137 [Test worker] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration tutor.educationservice.EducationServiceApplication for test class tutor.educationservice.ConflictHttpTest
+13:33:46.191 [Test worker] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [tutor.educationservice.ConflictHttpTest]: ConflictHttpTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+13:33:46.192 [Test worker] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration tutor.educationservice.EducationServiceApplication for test class tutor.educationservice.ConflictHttpTest
+2026-11-21T13:33:46.556+03:00  INFO 33460 --- [education-service] [    Test worker] t.educationservice.ConflictHttpTest      : Starting ConflictHttpTest using Java 17.0.12 with PID 33460 (started by qweka in D:\Project\Repetitor Platform\services\education-service)
+2026-11-21T13:33:46.557+03:00  INFO 33460 --- [education-service] [    Test worker] t.educationservice.ConflictHttpTest      : The following 1 profile is active: "test"
+2026-11-21T13:33:47.147+03:00  INFO 33460 --- [education-service] [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-11-21T13:33:47.199+03:00  INFO 33460 --- [education-service] [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 45 ms. Found 5 JPA repository interfaces.
+2026-11-21T13:33:48.338+03:00  INFO 33460 --- [education-service] [    Test worker] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 0 (http)
+2026-11-21T13:33:48.349+03:00  INFO 33460 --- [education-service] [    Test worker] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-11-21T13:33:48.350+03:00  INFO 33460 --- [education-service] [    Test worker] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.24]
+2026-11-21T13:33:48.425+03:00  INFO 33460 --- [education-service] [    Test worker] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 1843 ms
+2026-11-21T13:33:48.733+03:00  INFO 33460 --- [education-service] [    Test worker] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-11-21T13:33:48.857+03:00  INFO 33460 --- [education-service] [    Test worker] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@4545ac62
+2026-11-21T13:33:48.859+03:00  INFO 33460 --- [education-service] [    Test worker] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-11-21T13:33:48.878+03:00  INFO 33460 --- [education-service] [    Test worker] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:60784/test?loggerLevel=OFF (PostgreSQL 17.12)
+2026-11-21T13:33:48.953+03:00  INFO 33460 --- [education-service] [    Test worker] o.f.c.i.s.JdbcTableSchemaHistory         : Schema history table "public"."flyway_schema_history" does not exist yet
+2026-11-21T13:33:48.956+03:00  INFO 33460 --- [education-service] [    Test worker] o.f.core.internal.command.DbValidate     : Successfully validated 6 migrations (execution time 00:00.044s)
+2026-11-21T13:33:48.969+03:00  INFO 33460 --- [education-service] [    Test worker] o.f.c.i.s.JdbcTableSchemaHistory         : Creating Schema History table "public"."flyway_schema_history" ...
+2026-11-21T13:33:49.010+03:00  INFO 33460 --- [education-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Current version of schema "public": << Empty Schema >>
+2026-11-21T13:33:49.015+03:00  INFO 33460 --- [education-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "1 - initialize schema"
+2026-11-21T13:33:49.037+03:00  INFO 33460 --- [education-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "2 - course"
+2026-11-21T13:33:49.055+03:00  INFO 33460 --- [education-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "3 - course student"
+2026-11-21T13:33:49.071+03:00  INFO 33460 --- [education-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "4 - single lesson"
+2026-11-21T13:33:49.085+03:00  INFO 33460 --- [education-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "5 - lesson series and exception"
+2026-11-21T13:33:49.106+03:00  INFO 33460 --- [education-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "public" to version "6 - outbox event"
+2026-11-21T13:33:49.125+03:00  INFO 33460 --- [education-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Successfully applied 6 migrations to schema "public", now at version v6 (execution time 00:00.047s)
+2026-11-21T13:33:49.210+03:00  INFO 33460 --- [education-service] [    Test worker] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+2026-11-21T13:33:49.268+03:00  INFO 33460 --- [education-service] [    Test worker] org.hibernate.orm.core                   : HHH000001: Hibernate ORM core version 7.4.5.Final
+2026-11-21T13:33:49.540+03:00  INFO 33460 --- [education-service] [    Test worker] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-11-21T13:33:49.617+03:00  INFO 33460 --- [education-service] [    Test worker] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [jdbc:postgresql://localhost:60784/test?loggerLevel=OFF]
+	Database driver: PostgreSQL JDBC Driver
+	Database dialect: PostgreSQLDialect
+	Database version: 17.12
+	Default catalog/schema: test/public
+	Autocommit mode: undefined/unknown
+	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+	JDBC fetch size: none
+	Pool: DataSourceConnectionProvider
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-11-21T13:33:50.366+03:00  INFO 33460 --- [education-service] [    Test worker] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-11-21T13:33:50.399+03:00  INFO 33460 --- [education-service] [    Test worker] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-11-21T13:33:50.536+03:00  INFO 33460 --- [education-service] [    Test worker] o.s.d.j.r.query.QueryEnhancerFactories   : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-11-21T13:33:51.868+03:00  INFO 33460 --- [education-service] [    Test worker] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 1 endpoint beneath base path '/actuator'
+2026-11-21T13:33:51.922+03:00  INFO 33460 --- [education-service] [    Test worker] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 60795 (http) with context path '/'
+2026-11-21T13:33:51.929+03:00  INFO 33460 --- [education-service] [    Test worker] t.educationservice.ConflictHttpTest      : Started ConflictHttpTest in 5.701 seconds (process running for 9.177)
+2026-11-21T13:33:52.190+03:00  INFO 33460 --- [education-service] [o-auto-1-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-11-21T13:33:52.190+03:00  INFO 33460 --- [education-service] [o-auto-1-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-11-21T13:33:52.191+03:00  INFO 33460 --- [education-service] [o-auto-1-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2026-11-21T13:33:52.738+03:00  INFO 33460 --- [education-service] [    Test worker] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:60784/test?loggerLevel=OFF (PostgreSQL 17.12)
+2026-11-21T13:33:52.752+03:00  INFO 33460 --- [education-service] [    Test worker] o.f.core.internal.database.base.Schema   : Creating schema "stage7_upgrade" ...
+2026-11-21T13:33:52.755+03:00  INFO 33460 --- [education-service] [    Test worker] o.f.c.i.s.JdbcTableSchemaHistory         : Creating Schema History table "stage7_upgrade"."flyway_schema_history" ...
+2026-11-21T13:33:52.782+03:00  INFO 33460 --- [education-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Current version of schema "stage7_upgrade": null
+2026-11-21T13:33:52.785+03:00  INFO 33460 --- [education-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "stage7_upgrade" to version "1 - initialize schema"
+2026-11-21T13:33:52.795+03:00  INFO 33460 --- [education-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "stage7_upgrade" to version "2 - course"
+2026-11-21T13:33:52.809+03:00  INFO 33460 --- [education-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "stage7_upgrade" to version "3 - course student"
+2026-11-21T13:33:52.822+03:00  INFO 33460 --- [education-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "stage7_upgrade" to version "4 - single lesson"
+2026-11-21T13:33:52.835+03:00  INFO 33460 --- [education-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "stage7_upgrade" to version "5 - lesson series and exception"
+2026-11-21T13:33:52.852+03:00  INFO 33460 --- [education-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Successfully applied 5 migrations to schema "stage7_upgrade", now at version v5 (execution time 00:00.033s)
+2026-11-21T13:33:52.871+03:00  INFO 33460 --- [education-service] [    Test worker] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:60784/test?loggerLevel=OFF (PostgreSQL 17.12)
+2026-11-21T13:33:52.887+03:00  INFO 33460 --- [education-service] [    Test worker] o.f.core.internal.command.DbValidate     : Successfully validated 7 migrations (execution time 00:00.006s)
+2026-11-21T13:33:52.902+03:00  INFO 33460 --- [education-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Current version of schema "stage7_upgrade": 5
+2026-11-21T13:33:52.905+03:00  INFO 33460 --- [education-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Migrating schema "stage7_upgrade" to version "6 - outbox event"
+2026-11-21T13:33:52.917+03:00  INFO 33460 --- [education-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Successfully applied 1 migration to schema "stage7_upgrade", now at version v6 (execution time 00:00.007s)
+2026-11-21T13:33:52.930+03:00  INFO 33460 --- [education-service] [    Test worker] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:60784/test?loggerLevel=OFF (PostgreSQL 17.12)
+2026-11-21T13:33:52.958+03:00  INFO 33460 --- [education-service] [    Test worker] o.f.core.internal.command.DbValidate     : Successfully validated 7 migrations (execution time 00:00.005s)
+2026-11-21T13:33:52.974+03:00  INFO 33460 --- [education-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Current version of schema "stage7_upgrade": 6
+2026-11-21T13:33:52.975+03:00  INFO 33460 --- [education-service] [    Test worker] o.f.core.internal.command.DbMigrate      : Schema "stage7_upgrade" is up to date. No migration necessary.
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
