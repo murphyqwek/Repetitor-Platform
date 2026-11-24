@@ -49,6 +49,8 @@ management:
         readiness:
           include: readinessState,db,objectStorage
 education:
+  assignment:
+    token: ${EDUCATION_ASSIGNMENT_TOKEN:}
   outbox:
     enabled: ${EDUCATION_OUTBOX_ENABLED:true}
     bootstrap-servers: ${EDUCATION_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}

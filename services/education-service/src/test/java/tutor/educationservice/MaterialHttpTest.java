@@ -28,6 +28,7 @@ import static org.mockito.Mockito.*;
 class MaterialHttpTest {
     static final UUID TEACHER = UUID.randomUUID(), OTHER = UUID.randomUUID(), STUDENT = UUID.randomUUID();
     static final IdentityHttpStub identity = new IdentityHttpStub();
+    static final String assignmentToken = UUID.randomUUID().toString();
     static final HttpClient http = HttpClient.newHttpClient();
     @Container static final PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:17-alpine");
 
@@ -38,6 +39,7 @@ class MaterialHttpTest {
         registry.add("spring.datasource.username", postgres::getUsername);
         registry.add("spring.datasource.password", postgres::getPassword);
         registry.add("education.identity.base-url", identity::baseUrl);
+        registry.add("education.assignment.token", () -> assignmentToken);
         registry.add("education.storage.endpoint", () -> "http://localhost:1");
         registry.add("education.storage.bucket", () -> "material-test");
         registry.add("education.storage.access-key", () -> "material-test-access");
@@ -57,6 +59,7 @@ class MaterialHttpTest {
         identity.people.put(STUDENT, new IdentityHttpStub.Person(STUDENT, List.of("STUDENT"), false));
         jdbc.update("delete from cleanup_job");
         jdbc.update("delete from pending_upload");
+        jdbc.update("delete from material_reference");
         jdbc.update("delete from material_file");
         jdbc.update("delete from material_folder");
         jdbc.update("delete from course_student");
@@ -130,6 +133,36 @@ class MaterialHttpTest {
         assertThat(request("GET", path, STUDENT, null).statusCode()).isEqualTo(200);
         assertThat(request("DELETE", "/courses/" + first + "/students/" + STUDENT, TEACHER, null).statusCode()).isEqualTo(204);
         assertThat(request("GET", path, STUDENT, null).statusCode()).isEqualTo(404);
+    }
+
+    @Test
+    void assignmentReferencesBlockDeletionOfAFileAndItsFolderUntilReleased() throws Exception {
+        String folder = id(request("POST", "/materials/folders", TEACHER, "{\"name\":\"Folder\"}"), 201);
+        String file = id(upload(TEACHER, folder), 201);
+        UUID reference = UUID.randomUUID();
+        String body = mapper.writeValueAsString(Map.of("referenceId", reference,
+                "consumerService", "ASSIGNMENT", "consumerEntityId", UUID.randomUUID()));
+        String path = "/internal/v1/materials/" + file + "/references";
+        String userToken = TestJwt.token(List.of("TEACHER"), claims -> claims.subject(TEACHER.toString()), false);
+        assertThat(internal("POST", path, userToken, body).statusCode()).isEqualTo(401);
+        assertThat(internal("POST", path, assignmentToken, body).statusCode()).isEqualTo(201);
+        assertThat(internal("POST", path, assignmentToken, body).statusCode()).isEqualTo(200);
+        assertThat(request("DELETE", "/materials/files/" + file, TEACHER, null).statusCode()).isEqualTo(409);
+        assertThat(request("DELETE", "/materials/folders/" + folder, TEACHER, null).statusCode()).isEqualTo(409);
+        assertThat(jdbc.queryForObject("select state from material_file", String.class)).isEqualTo("ACTIVE");
+        assertThat(internal("DELETE", path + "/" + reference, assignmentToken, null).statusCode()).isEqualTo(204);
+        var first = request("DELETE", "/materials/folders/" + folder, TEACHER, null);
+        assertThat(first.statusCode()).as(first.body()).isEqualTo(202);
+        assertThat(request("DELETE", "/materials/folders/" + folder, TEACHER, null).body()).isEqualTo(first.body());
+        assertThat(request("GET", "/materials/files/" + file + "/content", TEACHER, null).statusCode()).isEqualTo(404);
+        assertThat(internal("POST", path, assignmentToken, body).statusCode()).isEqualTo(409);
+    }
+
+    private HttpResponse<String> internal(String method, String path, String token, String body) throws Exception {
+        return http.send(HttpRequest.newBuilder(URI.create("http://localhost:" + port + path)).timeout(Duration.ofSeconds(10))
+                .header("Authorization", "Bearer " + token).header("Content-Type", "application/json")
+                .method(method, body == null ? HttpRequest.BodyPublishers.noBody() : HttpRequest.BodyPublishers.ofString(body)).build(),
+                HttpResponse.BodyHandlers.ofString());
     }
 
     String id(HttpResponse<String> response, int status) {

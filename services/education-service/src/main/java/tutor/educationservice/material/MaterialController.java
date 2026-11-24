@@ -11,6 +11,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import tools.jackson.databind.JsonNode;
+import tutor.educationservice.cleanup.DeletionReceipt;
 import tutor.educationservice.common.error.ApiException;
 import tutor.educationservice.integration.storage.FileDownload;
 
@@ -23,10 +24,12 @@ public class MaterialController {
 
     private final MaterialService materials;
     private final FileDownload downloads;
+    private final MaterialDeletionService deletions;
 
-    public MaterialController(MaterialService materials, FileDownload downloads) {
+    public MaterialController(MaterialService materials, FileDownload downloads, MaterialDeletionService deletions) {
         this.materials = materials;
         this.downloads = downloads;
+        this.deletions = deletions;
     }
 
     @GetMapping
@@ -69,6 +72,16 @@ public class MaterialController {
     public ResponseEntity<InputStreamResource> download(@PathVariable UUID fileId) {
         var file = materials.ownedFile(fileId, false);
         return downloads.response(file.key(), file.dto().name(), file.dto().contentType(), file.dto().sizeBytes());
+    }
+
+    @DeleteMapping("/files/{fileId}")
+    public ResponseEntity<DeletionReceipt> deleteFile(@PathVariable UUID fileId) {
+        return ResponseEntity.accepted().cacheControl(CacheControl.noStore()).body(deletions.file(fileId));
+    }
+
+    @DeleteMapping("/folders/{folderId}")
+    public ResponseEntity<DeletionReceipt> deleteFolder(@PathVariable UUID folderId) {
+        return ResponseEntity.accepted().cacheControl(CacheControl.noStore()).body(deletions.folder(folderId));
     }
 
     private static UUID uuid(String value) {
