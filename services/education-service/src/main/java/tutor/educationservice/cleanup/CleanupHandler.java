@@ -3,7 +3,7 @@ package tutor.educationservice.cleanup;
 import java.util.UUID;
 
 public interface CleanupHandler {
-    enum ResourceType { COURSE, CHAT_MESSAGE, MATERIAL_FILE, MATERIAL_FOLDER }
+    enum ResourceType { COURSE, CHAT_MESSAGE, MATERIAL_FILE, MATERIAL_FOLDER, PENDING_UPLOAD }
 
     ResourceType type();
     void removeObjects(UUID resourceId);

@@ -23,6 +23,10 @@ spring:
     clean-disabled: true
   lifecycle:
     timeout-per-shutdown-phase: 20s
+  servlet:
+    multipart:
+      max-file-size: ${EDUCATION_MULTIPART_MAX_FILE_SIZE:250MB}
+      max-request-size: ${EDUCATION_MULTIPART_MAX_REQUEST_SIZE:252MB}
 server:
   port: ${EDUCATION_PORT:8080}
   shutdown: graceful

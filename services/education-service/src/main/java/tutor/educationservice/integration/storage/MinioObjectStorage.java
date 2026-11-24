@@ -1,5 +1,7 @@
 package tutor.educationservice.integration.storage;
 
+import io.minio.CopyObjectArgs;
+import io.minio.CopySource;
 import io.minio.GetObjectArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
@@ -40,6 +42,18 @@ public class MinioObjectStorage implements ObjectStorage {
         validateKey(objectKey);
         try {
             return new BufferedInputStream(client.getObject(GetObjectArgs.builder().bucket(bucket).object(objectKey).build()));
+        } catch (Exception exception) {
+            throw translate(exception);
+        }
+    }
+
+    @Override
+    public void copy(String sourceKey, String targetKey) {
+        validateKey(sourceKey);
+        validateKey(targetKey);
+        try {
+            client.copyObject(CopyObjectArgs.builder().bucket(bucket).object(targetKey)
+                    .source(CopySource.builder().bucket(bucket).object(sourceKey).build()).build());
         } catch (Exception exception) {
             throw translate(exception);
         }

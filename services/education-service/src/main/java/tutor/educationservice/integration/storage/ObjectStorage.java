@@ -7,6 +7,7 @@ public interface ObjectStorage {
     void put(String objectKey, InputStream body, long size, String contentType);
     // Caller owns and must close the returned stream.
     InputStream get(String objectKey);
+    void copy(String sourceKey, String targetKey);
     void delete(String objectKey);
     boolean exists(String objectKey);
 }

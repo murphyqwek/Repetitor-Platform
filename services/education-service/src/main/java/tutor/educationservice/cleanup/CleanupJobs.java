@@ -19,12 +19,18 @@ public class CleanupJobs {
 
     @Transactional(propagation = Propagation.MANDATORY)
     public UUID enqueue(ResourceType type, UUID resourceId) {
+        return enqueue(type, resourceId, Duration.ZERO);
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public UUID enqueue(ResourceType type, UUID resourceId, Duration delay) {
         return jdbc.queryForObject("""
-                insert into cleanup_job(id, resource_type, resource_id) values (?, ?, ?)
+                insert into cleanup_job(id, resource_type, resource_id, next_attempt_at)
+                values (?, ?, ?, clock_timestamp() + ? * interval '1 millisecond')
                 on conflict (resource_type, resource_id) where status in ('PENDING', 'PROCESSING', 'FAILED')
                 do update set resource_id = excluded.resource_id
                 returning id
-                """, UUID.class, UUID.randomUUID(), type.name(), resourceId);
+                """, UUID.class, UUID.randomUUID(), type.name(), resourceId, delay.toMillis());
     }
 
     List<Job> claim(Duration lease, int limit, List<String> types) {

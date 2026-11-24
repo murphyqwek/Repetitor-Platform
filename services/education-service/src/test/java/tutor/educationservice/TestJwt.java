@@ -24,6 +24,7 @@ public final class TestJwt {
 
     public static void properties(DynamicPropertyRegistry registry) {
         registry.add("education.outbox.enabled", () -> "false");
+        registry.add("education.cleanup.enabled", () -> "false");
         registry.add("education.security.public-key-location", () -> PUBLIC_KEY);
         registry.add("education.security.issuer", () -> "rp-identity");
         registry.add("education.identity.base-url", () -> "http://localhost:1");

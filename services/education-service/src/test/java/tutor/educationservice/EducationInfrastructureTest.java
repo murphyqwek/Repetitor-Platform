@@ -108,10 +108,11 @@ class EducationInfrastructureTest {
 
     @Test
     void contextLoadsAndFlywayRunsOnRealPostgres() {
-        assertThat(jdbc.queryForObject("select count(*) from flyway_schema_history where success", Integer.class)).isEqualTo(6);
+        assertThat(jdbc.queryForObject("select count(*) from flyway_schema_history where success", Integer.class)).isEqualTo(8);
         assertThat(jdbc.queryForObject("show timezone", String.class)).isEqualTo("UTC");
         assertThat(jdbc.queryForList("select table_name from information_schema.tables where table_schema='public' order by table_name", String.class))
-                .containsExactly("course", "course_student", "flyway_schema_history", "lesson_exception", "lesson_series", "outbox_event", "single_lesson");
+                .containsExactly("cleanup_job", "course", "course_student", "flyway_schema_history", "lesson_exception", "lesson_series",
+                        "material_file", "material_folder", "outbox_event", "pending_upload", "single_lesson");
     }
 
     @Test
