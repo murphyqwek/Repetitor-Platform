@@ -7,6 +7,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import tutor.educationservice.integration.storage.ObjectStorage;
 
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnProperty(name = "education.cleanup.enabled", havingValue = "true", matchIfMissing = true)
@@ -14,7 +15,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 public class CleanupConfiguration {
     @Bean
-    CleanupWorker cleanupWorker(CleanupJobs jobs, List<CleanupHandler> handlers, CleanupProperties properties, MeterRegistry meters) {
-        return new CleanupWorker(jobs, handlers, properties, meters);
+    CleanupWorker cleanupWorker(CleanupJobs jobs, ObjectStorage storage, List<CleanupHandler> handlers, CleanupProperties properties, MeterRegistry meters) {
+        return new CleanupWorker(jobs, storage, handlers, properties, meters);
     }
 }

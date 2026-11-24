@@ -8,6 +8,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,7 +21,9 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 import tutor.educationservice.cleanup.CleanupHandler.ResourceType;
+import tutor.educationservice.integration.storage.ObjectStorage;
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.mock;
 
 @Testcontainers
 class CleanupJobsTest {
@@ -85,13 +88,13 @@ class CleanupJobsTest {
         UUID id = enqueue(resource);
         var handler = new Handler();
         var old = jobs.claim(lease, 1, types).get(0);
-        handler.removeObjects(resource);
+        handler.removeObjects(resource, key -> {});
         jdbc.update("update cleanup_job set locked_until = clock_timestamp() where id = ?", id);
         var current = jobs.claim(lease, 1, types).get(0);
         assertThat(current.token()).isNotEqualTo(old.token());
         assertThat(transaction.<Boolean>execute(status -> jobs.complete(old, handler))).isFalse();
         assertThat(jdbc.queryForObject("select count(*) from cleanup_fixture", Integer.class)).isEqualTo(1);
-        handler.removeObjects(resource);
+        handler.removeObjects(resource, key -> {});
         assertThat(transaction.<Boolean>execute(status -> jobs.complete(current, handler))).isTrue();
         assertThat(jdbc.queryForObject("select count(*) from cleanup_fixture", Integer.class)).isZero();
         assertThat(jobs.count("COMPLETED")).isEqualTo(1);
@@ -105,7 +108,7 @@ class CleanupJobsTest {
         var handler = new Handler();
         handler.available = false;
         var meters = new SimpleMeterRegistry();
-        var worker = new CleanupWorker(jobs, List.of(handler),
+        var worker = new CleanupWorker(jobs, mock(ObjectStorage.class), List.of(handler),
                 new CleanupProperties(lease, 1, 2, Duration.ofSeconds(1), Duration.ofMinutes(1)), meters);
         worker.poll();
         assertThat(jobs.count("PENDING")).isEqualTo(1);
@@ -126,7 +129,7 @@ class CleanupJobsTest {
         boolean available = true;
 
         public ResourceType type() { return ResourceType.COURSE; }
-        public void removeObjects(UUID resourceId) {
+        public void removeObjects(UUID resourceId, Consumer<String> delete) {
             removals.incrementAndGet();
             if (!available) throw new IllegalStateException("storage unavailable");
         }

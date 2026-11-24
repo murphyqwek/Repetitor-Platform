@@ -56,7 +56,8 @@ class IdentityLookupTest {
         });
         server.start();
         client = new IdentityClient(new IdentityProperties("http://127.0.0.1:" + server.getAddress().getPort(),
-                Duration.ofMillis(300), Duration.ofMillis(300)), RestClient.builder());
+                Duration.ofMillis(300), Duration.ofMillis(300)), RestClient.builder(),
+                new io.micrometer.core.instrument.simple.SimpleMeterRegistry());
     }
 
     @AfterEach

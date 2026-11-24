@@ -3,6 +3,7 @@ package tutor.educationservice.integration.storage;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -67,14 +68,14 @@ public class PendingUploads implements CleanupHandler {
     public ResourceType type() { return ResourceType.PENDING_UPLOAD; }
 
     @Override
-    public void removeObjects(UUID id) {
+    public void removeObjects(UUID id, Consumer<String> delete) {
         var uploads = jdbc.query("""
                 update pending_upload set cleaning = true where id = ? returning staging_key, object_key, published
                 """, (row, index) -> new Upload(row.getString(1), row.getString(2), row.getBoolean(3)), id);
         if (uploads.isEmpty()) return;
         var upload = uploads.get(0);
-        storage.delete(upload.stagingKey());
-        if (!upload.published()) storage.delete(upload.objectKey());
+        delete.accept(upload.stagingKey());
+        if (!upload.published()) delete.accept(upload.objectKey());
     }
 
     @Override

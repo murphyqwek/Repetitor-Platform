@@ -1,5 +1,6 @@
 package tutor.educationservice.integration.storage;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import io.minio.BucketExistsArgs;
 import io.minio.MinioClient;
 import okhttp3.OkHttpClient;
@@ -21,8 +22,8 @@ public class StorageConfiguration {
     }
 
     @Bean
-    ObjectStorage objectStorage(MinioClient client, StorageProperties properties) {
-        return new MinioObjectStorage(client, properties);
+    ObjectStorage objectStorage(MinioClient client, StorageProperties properties, MeterRegistry meters) {
+        return new MinioObjectStorage(client, properties, meters);
     }
 
     @Bean

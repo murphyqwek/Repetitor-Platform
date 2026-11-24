@@ -1,30 +1,27 @@
 package tutor.educationservice.chat;
 
 import java.util.UUID;
+import java.util.function.Consumer;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import tutor.educationservice.cleanup.CleanupHandler;
-import tutor.educationservice.integration.storage.ObjectStorage;
 
 @Component
 class ChatMessageCleanup implements CleanupHandler {
     private final JdbcTemplate jdbc;
-    private final ObjectStorage storage;
-
-    ChatMessageCleanup(JdbcTemplate jdbc, ObjectStorage storage) {
+    ChatMessageCleanup(JdbcTemplate jdbc) {
         this.jdbc = jdbc;
-        this.storage = storage;
     }
 
     @Override
     public ResourceType type() { return ResourceType.CHAT_MESSAGE; }
 
     @Override
-    public void removeObjects(UUID id) {
+    public void removeObjects(UUID id, Consumer<String> delete) {
         jdbc.queryForList("""
                 select a.object_key from chat_attachment a join chat_message m on m.id = a.message_id
                 where m.id = ? and m.state = 'DELETING'
-                """, String.class, id).forEach(storage::delete);
+                """, String.class, id).forEach(delete);
     }
 
     @Override

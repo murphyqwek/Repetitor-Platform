@@ -1,5 +1,7 @@
 package tutor.educationservice.outbox;
 
+import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.binder.MeterBinder;
 import java.util.HashMap;
 import org.apache.kafka.clients.producer.*;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -35,5 +37,13 @@ public class OutboxConfiguration {
     @Bean
     OutboxPublisher outboxPublisher(JdbcTemplate jdbc, PlatformTransactionManager manager, Producer<String, String> producer, OutboxProperties properties) {
         return new OutboxPublisher(jdbc, manager, producer, properties);
+    }
+
+    @Bean
+    MeterBinder outboxMetrics(JdbcTemplate jdbc) {
+        return registry -> Gauge.builder("education.outbox.oldest.seconds", jdbc, database -> database.queryForObject("""
+                select coalesce(extract(epoch from clock_timestamp() - min(created_at)), 0)
+                from outbox_event where published_at is null
+                """, Double.class)).register(registry);
     }
 }

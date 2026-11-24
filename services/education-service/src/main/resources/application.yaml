@@ -23,6 +23,12 @@ spring:
     clean-disabled: true
   lifecycle:
     timeout-per-shutdown-phase: 20s
+  task:
+    scheduling:
+      pool:
+        size: 2
+  jmx:
+    enabled: ${EDUCATION_JMX_ENABLED:false}
   servlet:
     multipart:
       max-file-size: ${EDUCATION_MULTIPART_MAX_FILE_SIZE:250MB}
@@ -38,6 +44,9 @@ management:
     web:
       exposure:
         include: health
+    jmx:
+      exposure:
+        include: health,metrics
   endpoint:
     health:
       show-details: never

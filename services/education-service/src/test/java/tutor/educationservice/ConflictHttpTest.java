@@ -297,7 +297,7 @@ class ConflictHttpTest {
             jdbc.execute("create table stage7_upgrade.marker(value integer)");
             jdbc.update("insert into stage7_upgrade.marker values (42)");
             var current = Flyway.configure().dataSource(POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword())
-                    .schemas(schema).defaultSchema(schema).load();
+                    .schemas(schema).defaultSchema(schema).target("6").load();
             assertThat(current.migrate().migrationsExecuted).isEqualTo(1);
             assertThat(current.migrate().migrationsExecuted).isZero();
             assertThat(jdbc.queryForObject("select value from stage7_upgrade.marker", Integer.class)).isEqualTo(42);

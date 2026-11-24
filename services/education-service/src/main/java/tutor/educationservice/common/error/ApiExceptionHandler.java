@@ -1,6 +1,8 @@
 package tutor.educationservice.common.error;
 
 import jakarta.validation.ConstraintViolationException;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.http.*;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
@@ -50,7 +52,9 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    ResponseEntity<Object> unexpectedError() {
+    ResponseEntity<Object> unexpectedError(Exception exception) {
+        LoggerFactory.getLogger(ApiExceptionHandler.class).atError().setMessage("Unhandled API error")
+                .addKeyValue("requestId", MDC.get("requestId")).addKeyValue("error", exception.getClass().getSimpleName()).log();
         return response(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_ERROR", "Internal server error");
     }
 

@@ -13,18 +13,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import tutor.educationservice.cleanup.CleanupHandler.ResourceType;
+import tutor.educationservice.integration.storage.ObjectStorage;
 
 public class CleanupWorker {
     private static final Logger log = LoggerFactory.getLogger(CleanupWorker.class);
 
     private final CleanupJobs jobs;
+    private final ObjectStorage storage;
     private final Map<ResourceType, CleanupHandler> handlers;
     private final List<String> types;
     private final CleanupProperties properties;
     private final MeterRegistry meters;
 
-    public CleanupWorker(CleanupJobs jobs, List<CleanupHandler> handlers, CleanupProperties properties, MeterRegistry meters) {
+    public CleanupWorker(CleanupJobs jobs, ObjectStorage storage, List<CleanupHandler> handlers, CleanupProperties properties, MeterRegistry meters) {
         this.jobs = jobs;
+        this.storage = storage;
         this.handlers = handlers.stream().collect(Collectors.toUnmodifiableMap(CleanupHandler::type, Function.identity()));
         this.types = this.handlers.keySet().stream().map(Enum::name).toList();
         this.properties = properties;
@@ -45,7 +48,10 @@ public class CleanupWorker {
             Timer.Sample timer = Timer.start(meters);
             try {
                 var handler = handlers.get(job.type());
-                handler.removeObjects(job.resourceId());
+                handler.removeObjects(job.resourceId(), key -> {
+                    if (!jobs.renew(job, properties.lease())) throw new IllegalStateException("Cleanup lease lost");
+                    storage.delete(key);
+                });
                 jobs.complete(job, handler);
             } catch (RuntimeException exception) {
                 boolean terminal = job.attempts() >= properties.maxAttempts();

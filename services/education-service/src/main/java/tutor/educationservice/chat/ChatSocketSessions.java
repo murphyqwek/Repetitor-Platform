@@ -1,5 +1,7 @@
 package tutor.educationservice.chat;
 
+import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.UUID;
@@ -33,9 +35,10 @@ class ChatSocketSessions {
     private final IdentityAuthentication identity;
     private final CourseService courses;
 
-    ChatSocketSessions(IdentityAuthentication identity, CourseService courses) {
+    ChatSocketSessions(IdentityAuthentication identity, CourseService courses, MeterRegistry meters) {
         this.identity = identity;
         this.courses = courses;
+        Gauge.builder("education.chat.websocket.sessions", this, ChatSocketSessions::size).register(meters);
     }
 
     void opened(WebSocketSession socket) { sessions.put(socket.getId(), new Session(socket)); }

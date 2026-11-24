@@ -6,6 +6,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.*;
+import java.util.function.Consumer;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -29,17 +30,15 @@ class ChatAttachments implements CleanupHandler {
     private final CourseService courses;
     private final CleanupJobs jobs;
     private final PendingUploads uploads;
-    private final ObjectStorage storage;
     private final TransactionTemplate transaction;
 
     ChatAttachments(JdbcTemplate jdbc, ChatAccess access, CourseService courses, CleanupJobs jobs,
-            PendingUploads uploads, ObjectStorage storage, PlatformTransactionManager manager) {
+            PendingUploads uploads, PlatformTransactionManager manager) {
         this.jdbc = jdbc;
         this.access = access;
         this.courses = courses;
         this.jobs = jobs;
         this.uploads = uploads;
-        this.storage = storage;
         this.transaction = new TransactionTemplate(manager);
     }
 
@@ -102,11 +101,11 @@ class ChatAttachments implements CleanupHandler {
     public ResourceType type() { return ResourceType.CHAT_ATTACHMENT; }
 
     @Override
-    public void removeObjects(UUID id) {
+    public void removeObjects(UUID id, Consumer<String> delete) {
         jdbc.queryForList("""
                 update chat_attachment set upload_state = 'DELETING'
                 where id = ? and message_id is null and expires_at <= clock_timestamp() returning object_key
-                """, String.class, id).forEach(storage::delete);
+                """, String.class, id).forEach(delete);
     }
 
     @Override

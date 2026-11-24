@@ -1,12 +1,12 @@
 package tutor.educationservice.course;
 
 import java.util.UUID;
+import java.util.function.Consumer;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tutor.educationservice.cleanup.*;
-import tutor.educationservice.integration.storage.ObjectStorage;
 
 @Service
 public class CourseDeletion implements CleanupHandler {
@@ -15,14 +15,12 @@ public class CourseDeletion implements CleanupHandler {
     private final CourseService courses;
     private final CleanupJobs jobs;
     private final JdbcTemplate jdbc;
-    private final ObjectStorage storage;
     private final ApplicationEventPublisher events;
 
-    public CourseDeletion(CourseService courses, CleanupJobs jobs, JdbcTemplate jdbc, ObjectStorage storage, ApplicationEventPublisher events) {
+    public CourseDeletion(CourseService courses, CleanupJobs jobs, JdbcTemplate jdbc, ApplicationEventPublisher events) {
         this.courses = courses;
         this.jobs = jobs;
         this.jdbc = jdbc;
-        this.storage = storage;
         this.events = events;
     }
 
@@ -40,11 +38,11 @@ public class CourseDeletion implements CleanupHandler {
     public ResourceType type() { return ResourceType.COURSE; }
 
     @Override
-    public void removeObjects(UUID id) {
+    public void removeObjects(UUID id, Consumer<String> delete) {
         jdbc.queryForList("""
                 select a.object_key from chat_attachment a join course c on c.id = a.course_id
                 where c.id = ? and c.deletion_state = 'DELETING'
-                """, String.class, id).forEach(storage::delete);
+                """, String.class, id).forEach(delete);
     }
 
     @Override

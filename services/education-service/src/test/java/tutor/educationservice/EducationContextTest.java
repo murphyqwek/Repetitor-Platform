@@ -92,6 +92,29 @@ class EducationContextTest {
     }
 
     @Test
+    void upgradesExistingScheduleDatabaseThroughV12() {
+        String schema = "education_upgrade";
+        var old = Flyway.configure().dataSource(POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword())
+                .schemas(schema).defaultSchema(schema).target("6").load();
+        try {
+            assertThat(old.migrate().migrationsExecuted).isEqualTo(6);
+            var course = java.util.UUID.randomUUID();
+            jdbc.update("insert into education_upgrade.course(id, teacher_id, title, created_at) values (?, ?, 'Existing', clock_timestamp())",
+                    course, java.util.UUID.randomUUID());
+            jdbc.update("insert into education_upgrade.course_student(course_id, student_id, enrolled_at) values (?, ?, clock_timestamp())",
+                    course, java.util.UUID.randomUUID());
+            var latest = Flyway.configure().dataSource(POSTGRES.getJdbcUrl(), POSTGRES.getUsername(), POSTGRES.getPassword())
+                    .schemas(schema).defaultSchema(schema).load();
+            assertThat(latest.migrate().migrationsExecuted).isEqualTo(6);
+            assertThat(latest.migrate().migrationsExecuted).isZero();
+            assertThat(jdbc.queryForObject("select title from education_upgrade.course where id = ?", String.class, course)).isEqualTo("Existing");
+            assertThat(jdbc.queryForObject("select count(*) from education_upgrade.course_student where course_id = ?", Integer.class, course)).isEqualTo(1);
+        } finally {
+            jdbc.execute("drop schema if exists education_upgrade cascade");
+        }
+    }
+
+    @Test
     void keysetCursorSurvivesDeletedAnchorAndEqualTimestamps() {
         jdbc.execute("create table stage2_cursor_fixture (id uuid primary key, created_at timestamptz not null)");
         try {

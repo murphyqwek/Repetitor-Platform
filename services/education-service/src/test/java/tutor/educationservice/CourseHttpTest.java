@@ -1,7 +1,9 @@
 package tutor.educationservice;
 
 import io.minio.BucketExistsArgs;
+import io.minio.CopyObjectArgs;
 import io.minio.MinioClient;
+import io.minio.PutObjectArgs;
 import io.minio.RemoveObjectArgs;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.net.*;
@@ -26,12 +28,15 @@ import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tutor.educationservice.IdentityHttpStub.Person;
 import tutor.educationservice.cleanup.*;
+import tutor.educationservice.integration.storage.ObjectStorage;
 import static org.assertj.core.api.Assertions.*;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 @Testcontainers
 @ActiveProfiles("test")
@@ -72,6 +77,7 @@ class CourseHttpTest {
     @Autowired ObjectMapper mapper;
     @Autowired CleanupJobs cleanupJobs;
     @Autowired List<CleanupHandler> cleanupHandlers;
+    @Autowired ObjectStorage storage;
     @LocalServerPort int port;
 
     @BeforeEach
@@ -161,7 +167,7 @@ class CourseHttpTest {
         String course = json(create(TEACHER, Map.of("title", "Live chat"))).path("id").asString();
         String path = "/api/v1/courses/" + course;
         assertThat(request("POST", path + "/students", TEACHER, Map.of("studentId", STUDENT)).statusCode()).isEqualTo(201);
-        try (var author = new Stomp(TEACHER); var member = new Stomp(STUDENT)) {
+        try (var author = stomp(TEACHER); var member = stomp(STUDENT)) {
             author.subscribe("response", "/user/queue/chat.responses");
             member.subscribe("course", "/topic/courses/" + course + "/chat");
             UUID clientId = UUID.randomUUID();
@@ -184,70 +190,57 @@ class CourseHttpTest {
             assertThat(author.event().path("code").asString()).isEqualTo("CLIENT_MESSAGE_ID_CONFLICT");
             assertThat(jdbc.queryForObject("select count(*) from chat_message", Integer.class)).isEqualTo(1);
             assertThat(request("DELETE", path + "/students/" + STUDENT, TEACHER, null).statusCode()).isEqualTo(204);
-            assertThat(member.closed.get(10, TimeUnit.SECONDS)).isEqualTo(1008);
+            assertThat(member.closeStatus()).isEqualTo(1008);
         }
     }
 
-    private final class Stomp implements WebSocket.Listener, AutoCloseable {
-        private final BlockingQueue<String> frames = new LinkedBlockingQueue<>();
-        private final CompletableFuture<Integer> closed = new CompletableFuture<>();
-        private final StringBuilder buffer = new StringBuilder();
-        private final WebSocket socket;
+    private TestStompClient stomp(UUID user) throws Exception {
+        String token = TestJwt.token(PEOPLE.get(user).roles(), claims -> claims.subject(user.toString()), false);
+        return new TestStompClient(port, token, mapper);
+    }
 
-        private Stomp(UUID user) throws Exception {
-            socket = HTTP.newWebSocketBuilder().subprotocols("v12.stomp").connectTimeout(Duration.ofSeconds(5))
-                    .buildAsync(URI.create("ws://localhost:" + port + "/ws"), this).get(10, TimeUnit.SECONDS);
-            String token = TestJwt.token(PEOPLE.get(user).roles(), claims -> claims.subject(user.toString()), false);
-            sendFrame("CONNECT\naccept-version:1.2\nhost:localhost\nAuthorization:Bearer " + token + "\n\n");
-            assertThat(take()).startsWith("CONNECTED");
+    @Test
+    void blockedStudentCannotReceiveOnAnExistingChatSession() throws Exception {
+        String course = json(create(TEACHER, Map.of("title", "Blocked subscriber"))).path("id").asString();
+        String path = "/api/v1/courses/" + course;
+        assertThat(request("POST", path + "/students", TEACHER, Map.of("studentId", STUDENT)).statusCode()).isEqualTo(201);
+        try (var author = stomp(TEACHER); var member = stomp(STUDENT)) {
+            author.subscribe("response", "/user/queue/chat.responses");
+            member.subscribe("course", "/topic/courses/" + course + "/chat");
+            member.subscribe("response", "/user/queue/chat.responses");
+            member.send(course, "{}");
+            assertThat(member.event().path("code").asString()).isEqualTo("INVALID_MESSAGE");
+            PEOPLE.put(STUDENT, new Person(STUDENT, List.of("STUDENT"), true));
+            author.send(course, mapper.writeValueAsString(Map.of("clientMessageId", UUID.randomUUID(), "text", "Private")));
+            assertThat(author.event().path("type").asString()).isEqualTo("MESSAGE_ACCEPTED");
+            assertThat(member.closeStatus()).isEqualTo(1008);
         }
+    }
 
-        private void subscribe(String id, String destination) throws Exception {
-            sendFrame("SUBSCRIBE\nid:" + id + "\ndestination:" + destination + "\n\n");
-        }
-
-        private void send(String course, String body) throws Exception {
-            sendFrame("SEND\ndestination:/app/courses/" + course + "/chat.send\ncontent-type:application/json\n\n" + body);
-        }
-
-        private void sendFrame(String frame) throws Exception { socket.sendText(frame + "\0", true).get(5, TimeUnit.SECONDS); }
-
-        private String take() throws InterruptedException {
-            String value = frames.poll(10, TimeUnit.SECONDS);
-            assertThat(value).as("STOMP frame").isNotNull();
-            return value;
-        }
-
-        private JsonNode event() throws InterruptedException {
-            String frame = take();
-            assertThat(frame).startsWith("MESSAGE");
-            return mapper.readTree(frame.substring(frame.indexOf("\n\n") + 2));
-        }
-
-        @Override
-        public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last) {
-            buffer.append(data);
-            if (last) {
-                for (String frame : buffer.toString().split("\0")) {
-                    if (!frame.isBlank()) frames.add(frame.stripLeading());
-                }
-                buffer.setLength(0);
-            }
-            webSocket.request(1);
+    @Test
+    void courseDeletionDuringStagingPreventsFinalObjectPublication() throws Exception {
+        String course = json(create(TEACHER, Map.of("title", "Upload race"))).path("id").asString();
+        String path = "/api/v1/courses/" + course;
+        var staging = new CountDownLatch(1);
+        var continueUpload = new CountDownLatch(1);
+        when(minio.putObject(any(PutObjectArgs.class))).thenAnswer(call -> {
+            staging.countDown();
+            if (!continueUpload.await(10, TimeUnit.SECONDS)) throw new java.io.IOException("Upload test timed out");
             return null;
+        });
+        var executor = Executors.newSingleThreadExecutor();
+        try {
+            var upload = executor.submit(() -> uploadChatFile(path, TEACHER, "note.txt", "text/plain", "buffered"));
+            assertThat(staging.await(10, TimeUnit.SECONDS)).isTrue();
+            assertThat(request("DELETE", path, TEACHER, null).statusCode()).isEqualTo(202);
+            continueUpload.countDown();
+            assertThat(upload.get(10, TimeUnit.SECONDS).statusCode()).isEqualTo(404);
+            verify(minio, never()).copyObject(any(CopyObjectArgs.class));
+            assertThat(jdbc.queryForObject("select count(*) from pending_upload where not published", Integer.class)).isEqualTo(1);
+        } finally {
+            continueUpload.countDown();
+            executor.shutdownNow();
         }
-
-        @Override
-        public CompletionStage<?> onClose(WebSocket webSocket, int statusCode, String reason) {
-            closed.complete(statusCode);
-            return null;
-        }
-
-        @Override
-        public void onError(WebSocket webSocket, Throwable error) { closed.completeExceptionally(error); }
-
-        @Override
-        public void close() { socket.abort(); }
     }
 
     @Test
@@ -256,7 +249,7 @@ class CourseHttpTest {
         String path = "/api/v1/courses/" + course;
         assertThat(request("POST", path + "/students", TEACHER, Map.of("studentId", STUDENT)).statusCode()).isEqualTo(201);
         String attachment = json(uploadChatFile(path, STUDENT, "note.txt", "text/plain", "hello")).path("attachmentId").asString();
-        try (var author = new Stomp(STUDENT); var teacher = new Stomp(TEACHER)) {
+        try (var author = stomp(STUDENT); var teacher = stomp(TEACHER)) {
             author.subscribe("response", "/user/queue/chat.responses");
             teacher.subscribe("course", "/topic/courses/" + course + "/chat");
             teacher.subscribe("response", "/user/queue/chat.responses");
@@ -307,7 +300,7 @@ class CourseHttpTest {
         assertThat(uploadChatFile(path, STUDENT, "note.txt", "text/plain", "hello").statusCode()).isEqualTo(404);
 
         UUID job = UUID.fromString(json(deleted).path("cleanupJobId").asString());
-        var worker = new CleanupWorker(cleanupJobs, cleanupHandlers,
+        var worker = new CleanupWorker(cleanupJobs, storage, cleanupHandlers,
                 new CleanupProperties(Duration.ofMinutes(1), 10, 3, Duration.ofSeconds(1), Duration.ofMinutes(1)), new SimpleMeterRegistry());
         doThrow(new java.io.IOException("Storage unavailable")).when(minio).removeObject(any(RemoveObjectArgs.class));
         worker.poll();

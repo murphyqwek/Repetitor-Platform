@@ -63,6 +63,13 @@ public class CleanupJobs {
                 """, UUID.class, type.name(), resourceId);
     }
 
+    boolean renew(Job job, Duration lease) {
+        return jdbc.update("""
+                update cleanup_job set locked_until = clock_timestamp() + ? * interval '1 millisecond'
+                where id = ? and lease_token = ? and locked_until > clock_timestamp()
+                """, lease.toMillis(), job.id(), job.token()) == 1;
+    }
+
     @Transactional
     public boolean complete(Job job, CleanupHandler handler) {
         var rows = jdbc.queryForList("""

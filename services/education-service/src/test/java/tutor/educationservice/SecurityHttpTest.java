@@ -225,7 +225,8 @@ class SecurityHttpTest {
         String multipart = "--boundary\r\nContent-Disposition: form-data; name=\"file\"; filename=\"file.txt\"\r\n"
                 + "Content-Type: text/plain\r\n\r\n" + "x".repeat(512) + "\r\n--boundary--\r\n";
         assertProblem(request("POST", "/api/v1/_test/upload", token, multipart, "multipart/form-data; boundary=boundary"), 413, "FILE_TOO_LARGE");
-        assertProblem(request("GET", "/internal/v1/materials/anything", token, null, null), 403, "ACCESS_DENIED");
+        assertProblem(request("POST", "/internal/v1/materials/" + UUID.randomUUID() + "/references", token, "{}", "application/json"),
+                401, "UNAUTHORIZED");
     }
 
     @Test

@@ -71,7 +71,8 @@ class StorageUnitTest {
     void closesUploadStreamEvenWhenValidationFails() {
         var properties = new StorageProperties("http://localhost:9000", "bucket", "access", "secret");
         var storage = new MinioObjectStorage(MinioClient.builder().endpoint(properties.endpoint())
-                .credentials(properties.accessKey(), properties.secretKey()).build(), properties);
+                .credentials(properties.accessKey(), properties.secretKey()).build(), properties,
+                new io.micrometer.core.instrument.simple.SimpleMeterRegistry());
         var body = new ByteArrayInputStream(new byte[1]) {
             boolean closed;
             @Override

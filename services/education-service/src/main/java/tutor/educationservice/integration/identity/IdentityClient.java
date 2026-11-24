@@ -1,7 +1,9 @@
 package tutor.educationservice.integration.identity;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import java.net.http.HttpClient;
 import java.util.UUID;
+import java.util.function.Supplier;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.client.JdkClientHttpRequestFactory;
@@ -13,8 +15,10 @@ import tutor.educationservice.common.error.ApiException;
 @Component
 public class IdentityClient {
     private final RestClient client;
+    private final MeterRegistry meters;
 
-    public IdentityClient(IdentityProperties properties, RestClient.Builder builder) {
+    public IdentityClient(IdentityProperties properties, RestClient.Builder builder, MeterRegistry meters) {
+        this.meters = meters;
         var http = HttpClient.newBuilder().connectTimeout(properties.connectTimeout()).followRedirects(HttpClient.Redirect.NEVER).build();
         var factory = new JdkClientHttpRequestFactory(http);
         factory.setReadTimeout(properties.readTimeout());
@@ -22,7 +26,7 @@ public class IdentityClient {
     }
 
     public IdentityProfile currentUser(String accessToken, UUID expectedId) {
-        try {
+        return observed("profile", () -> {
             // Identity currently resolves access_token cookies only; never forward other browser cookies.
             var profile = client.get().uri("/api/v1/users/me").header(HttpHeaders.COOKIE, "access_token=" + accessToken)
                     .retrieve().onStatus(status -> !status.is2xxSuccessful(), (request, response) -> {
@@ -36,14 +40,12 @@ public class IdentityClient {
                     || profile.roles().isEmpty() || profile.roles().stream().anyMatch(java.util.Objects::isNull)
                     || profile.blocked() == null || profile.nameRequested() == null) throw unavailable();
             return profile;
-        } catch (RestClientException exception) {
-            throw unavailable();
-        }
+        });
     }
 
     public IdentityUser user(String accessToken, UUID id) {
         java.util.Objects.requireNonNull(id, "Target user ID is required");
-        try {
+        return observed("lookup", () -> {
             var user = client.get().uri("/api/v1/directory/users/{id}", id).header(HttpHeaders.COOKIE, "access_token=" + accessToken)
                     .retrieve().onStatus(status -> !status.is2xxSuccessful(), (request, response) -> {
                         int status = response.getStatusCode().value();
@@ -55,8 +57,18 @@ public class IdentityClient {
             if (user == null || !id.equals(user.id()) || user.roles() == null
                     || user.roles().stream().anyMatch(java.util.Objects::isNull) || user.blocked() == null) throw unavailable();
             return user;
+        });
+    }
+
+    private <T> T observed(String operation, Supplier<T> lookup) {
+        try {
+            return lookup.get();
         } catch (RestClientException exception) {
+            meters.counter("education.identity.errors", "operation", operation).increment();
             throw unavailable();
+        } catch (ApiException exception) {
+            if (exception.status().is5xxServerError()) meters.counter("education.identity.errors", "operation", operation).increment();
+            throw exception;
         }
     }
 

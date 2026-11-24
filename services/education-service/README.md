@@ -1,4 +1,4 @@
-# Education Service — этапы 1–7
+# Education Service
 
 Java 17, Spring Boot 4.1.1, Gradle 9.8.2 / Kotlin DSL. Работают инфраструктурный каркас,
 PostgreSQL/Flyway/JPA, Actuator и потоковый MinIO-адаптер `ObjectStorage`.
@@ -6,10 +6,13 @@ PostgreSQL/Flyway/JPA, Actuator и потоковый MinIO-адаптер `Obje
 Работают курсы, текущие зачисления, список учеников и локальный флаг запрета отправки сообщений.
 Работают создание/перенос/отмена разовых занятий и месячные календари курса/пользователя.
 Работают бессрочные серии с переносами/отменами вхождений и остановкой по московской дате.
-Библиотека преподавателя поддерживает папки, загрузку, скачивание, переименование и перемещение файлов. Чат пока не реализован.
-Публичны только `/actuator/health`, `/actuator/health/liveness`, `/actuator/health/readiness`.
+Библиотека преподавателя поддерживает папки, файлы и правила доступа через курс. Чат использует
+REST для истории и вложений и WebSocket/STOMP для сообщений. Удаление курсов, файлов и папок
+выполняется через очередь очистки.
+Проверки `/actuator/health`, `/actuator/health/liveness` и `/actuator/health/readiness` публичны.
+`GET /ws` открывает транспорт, STOMP `CONNECT` требует Bearer JWT.
 `/api/v1/**` требует Bearer JWT и актуальный доступ в Identity.
-Остальные пути, включая `/internal/**`, закрыты. Lookup другого пользователя по UUID подключён
+Внутренний API ссылок на материалы требует credential Assignment. Lookup пользователя по UUID подключён
 к согласованному расширению каталога Identity, см. ADR-002.
 
 ## Курсы
@@ -48,7 +51,8 @@ PATCH отклоняет teacherId, meetingUrl, chatMode, deletionState, id и c
 `scope=ENROLLED` требует STUDENT и возвращает ACTIVE курсы с текущим членством пользователя.
 teacherId для этого scope не принимается. После исключения новые чтения курса и ENROLLED сразу закрывают доступ.
 Членство TEACHER+STUDENT в чужом курсе разрешает чтение, но не управление курсом или списком учеников.
-DELETE курса относится к этапу 16 и пока отсутствует. Правила расписания/чата/материалов не добавлены.
+`DELETE /api/v1/courses/{courseId}` возвращает `202`. Курс сразу скрывается, фоновая очистка
+удаляет чат, расписание, зачисления и гранты курса на материалы. Файлы библиотеки сохраняются.
 
 Примеры PowerShell с JWT Identity в локальной `$env:EDUCATION_ACCESS_TOKEN` (токен не коммитить):
 
@@ -62,7 +66,7 @@ $rename = @{ title = 'Алгебра' } | ConvertTo-Json
 Invoke-RestMethod -Method Patch -Uri "http://localhost:8081/api/v1/courses/$($course.id)" -Headers $headers -ContentType 'application/json' -Body $rename
 ```
 
-Эти команды создают постоянный курс в local volume; автоматического DELETE до этапа 16 нет.
+Эти команды создают курс в local volume. Его может удалить владелец или администратор.
 
 ## Зачисления
 
@@ -86,8 +90,8 @@ Identity lookup проходит до write transaction; запись берёт
 
 Блокировка в Identity запрещает доступ ученика, но оставляет его в составе курса с актуальным blocked=true.
 canSendMessages=false не ограничивает чтение курса. PATCH отсутствующего членства — 404.
-Повторное зачисление создаёт новый enrolledAt и сбрасывает canSendMessages в true. DELETE удаляет только членство;
-таблицы истории чата на этом этапе ещё нет. Не реализованы отправка сообщений и ограничения ANNOUNCEMENTS.
+Повторное зачисление создаёт новый enrolledAt и сбрасывает canSendMessages в true. DELETE удаляет только членство.
+Право отправки влияет на STOMP SEND и загрузку вложений. Режим ANNOUNCEMENTS закрывает их для учеников.
 
 При зачислении сервис проверяет будущие занятия ученика во всех активных курсах. При пересечении повторите команду с confirmConflicts=true после просмотра предупреждения.
 
@@ -231,10 +235,10 @@ Compose project: `tutor-platform-local`, сеть: `tutor-platform-local_default
 | PostgreSQL Education | `jdbc:postgresql://localhost:5433/education` | `jdbc:postgresql://education-postgres:5432/education` |
 | MinIO S3 | `http://localhost:9000` | `http://minio:9000` |
 | MinIO Console | `http://localhost:9001` | `http://minio:9001` |
-| Kafka, для будущих этапов | `localhost:9092` | `kafka:29092` |
+| Kafka, события расписания | `localhost:9092` | `kafka:29092` |
 | Identity, запускается отдельно | `http://localhost:8080` | `http://host.docker.internal:8080` |
 
-Redis/Kafka не являются обязательными зависимостями Education на этапе 1. Nginx по-прежнему
+Kafka нужна для публикации событий расписания. Nginx по-прежнему
 направлен на существующий `API_UPSTREAM`; Education доступен отдельно на 8081.
 Все новые хостовые порты привязаны к `127.0.0.1`.
 
@@ -318,7 +322,7 @@ upstream bodies, SDK exceptions и значения отклонённых по�
 Общий курсор AES-256-GCM скрывает `createdAt` и UUID, защищает целостность и привязывается к серверному
 scope: пользователь, курс, фильтры и порядок должны входить в scope при подключении будущего маршрута.
 Курсор действует 24 часа; удаление опорной строки его не ломает. Общий limit: default 30, max 100;
-для будущей истории чата предусмотрен default 50. Список курсов использует этот курсор.
+для истории чата используется default 50. Список курсов использует этот курсор.
 
 `IdentityClient.user(accessToken, id)` вызывает `GET /api/v1/directory/users/{id}` в обновлённом Identity.
 Доступ к каталогу — TEACHER/ADMIN; ответ содержит только UUID, ФИО, роли и blocked. Для несуществующего
@@ -331,7 +335,7 @@ scope: пользователь, курс, фильтры и порядок до
 получает настройки через Testcontainers, без локальных или production секретов.
 Hibernate использует `validate`, Flyway — единственный источник DDL. Миграция V1 отмечает
 схему как управляемую Flyway; V2 создаёт course, не затрагивая данные V1. JDBC-сессии и сериализация настроены на UTC;
-локальные правила расписания Europe/Moscow относятся к следующему функциональному этапу.
+локальные правила календаря используют Europe/Moscow.
 
 ## Сборка и полный запуск
 
@@ -393,6 +397,26 @@ $env:JAVA_TOOL_OPTIONS = '-Duser.timezone=UTC'
 
 Этот загрузчик покрывает простые однострочные значения из `.env.example`, без shell expansion.
 В IDE задайте те же переменные через Run Configuration. Ctrl+C завершает приложение корректно.
+
+## Чат и материалы
+
+Маршруты и права описаны в [REST-контракте](../../docs/архитектура/education-service/education_service_rest_api_contract.md)
+и [STOMP-контракте](../../docs/архитектура/education-service/chat_websocket_contract.md).
+При исключении ученика открытая подписка на курс закрывается. Блокировка в Identity проверяется
+при подписке, отправке и перед доставкой очередного события. Broker работает в одном экземпляре
+Education, после переподключения события сверяются с REST-историей.
+
+| API | Доступ | Проверка |
+| --- | --- | --- |
+| Курсы, зачисления и расписание | Владелец/admin меняют, участники читают доступные данные | `CourseHttpTest`, `ScheduleHttpTest`, `SeriesHttpTest`, `ConflictHttpTest` |
+| Библиотека, гранты, скачивание | Владелец/admin управляют библиотекой. Ученик читает только по гранту своего курса | `MaterialHttpTest`, `EducationInfrastructureTest` |
+| Ссылки Assignment | Отдельный служебный Bearer-токен | `MaterialHttpTest`, `SecurityHttpTest` |
+| История, вложения, STOMP | Доступ к активному курсу. Отправка учитывает режим и персональный запрет | `CourseHttpTest`, `EducationInfrastructureTest` |
+| Удаление курса и модерация | Владелец или admin с проверкой автора сообщения | `CourseHttpTest`, `EducationInfrastructureTest`, `CleanupJobsTest` |
+
+Метрики Micrometer содержат задержки HTTP, ошибки Identity/S3, возраст событий outbox, состояние очереди
+очистки и активные WebSocket-соединения. Для локального просмотра метрик через JMX задайте
+`EDUCATION_JMX_ENABLED=true`. Ответы API содержат `X-Request-Id` для поиска ошибки в логах.
 
 ## Тесты
 

@@ -1,5 +1,6 @@
 package tutor.educationservice.integration.storage;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import io.minio.CopyObjectArgs;
 import io.minio.CopySource;
 import io.minio.GetObjectArgs;
@@ -15,10 +16,12 @@ import java.util.Objects;
 public class MinioObjectStorage implements ObjectStorage {
     private final MinioClient client;
     private final String bucket;
+    private final MeterRegistry meters;
 
-    public MinioObjectStorage(MinioClient client, StorageProperties properties) {
+    public MinioObjectStorage(MinioClient client, StorageProperties properties, MeterRegistry meters) {
         this.client = client;
         this.bucket = properties.bucket();
+        this.meters = meters;
     }
 
     @Override
@@ -33,7 +36,7 @@ public class MinioObjectStorage implements ObjectStorage {
         } catch (IllegalArgumentException exception) {
             throw exception;
         } catch (Exception exception) {
-            throw translate(exception);
+            throw translate(exception, "put");
         }
     }
 
@@ -43,7 +46,7 @@ public class MinioObjectStorage implements ObjectStorage {
         try {
             return new BufferedInputStream(client.getObject(GetObjectArgs.builder().bucket(bucket).object(objectKey).build()));
         } catch (Exception exception) {
-            throw translate(exception);
+            throw translate(exception, "get");
         }
     }
 
@@ -55,7 +58,7 @@ public class MinioObjectStorage implements ObjectStorage {
             client.copyObject(CopyObjectArgs.builder().bucket(bucket).object(targetKey)
                     .source(CopySource.builder().bucket(bucket).object(sourceKey).build()).build());
         } catch (Exception exception) {
-            throw translate(exception);
+            throw translate(exception, "copy");
         }
     }
 
@@ -66,7 +69,7 @@ public class MinioObjectStorage implements ObjectStorage {
             client.removeObject(RemoveObjectArgs.builder().bucket(bucket).object(objectKey).build());
         } catch (Exception exception) {
             if (!missingObject(exception)) {
-                throw translate(exception);
+                throw translate(exception, "delete");
             }
         }
     }
@@ -81,7 +84,7 @@ public class MinioObjectStorage implements ObjectStorage {
             if (missingObject(exception)) {
                 return false;
             }
-            throw translate(exception);
+            throw translate(exception, "stat");
         }
     }
 
@@ -96,7 +99,9 @@ public class MinioObjectStorage implements ObjectStorage {
                 && ("NoSuchKey".equals(response.errorResponse().code()) || "NoSuchObject".equals(response.errorResponse().code()));
     }
 
-    private static StorageException translate(Exception exception) {
-        return new StorageException(missingObject(exception) ? StorageException.Reason.NOT_FOUND : StorageException.Reason.UNAVAILABLE);
+    private StorageException translate(Exception exception, String operation) {
+        if (missingObject(exception)) return new StorageException(StorageException.Reason.NOT_FOUND);
+        meters.counter("education.storage.errors", "operation", operation).increment();
+        return new StorageException(StorageException.Reason.UNAVAILABLE);
     }
 }
