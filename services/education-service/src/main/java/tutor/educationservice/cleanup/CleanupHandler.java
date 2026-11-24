@@ -1,0 +1,11 @@
+package tutor.educationservice.cleanup;
+
+import java.util.UUID;
+
+public interface CleanupHandler {
+    enum ResourceType { COURSE, CHAT_MESSAGE, MATERIAL_FILE, MATERIAL_FOLDER }
+
+    ResourceType type();
+    void removeObjects(UUID resourceId);
+    void removeRows(UUID resourceId);
+}
