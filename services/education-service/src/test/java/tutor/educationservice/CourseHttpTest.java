@@ -95,6 +95,32 @@ class CourseHttpTest {
     }
 
     @Test
+    void chatHistoryUsesAuthorSnapshotAndCursorSurvivesDeletingItsAnchor() throws Exception {
+        String course = json(create(TEACHER, Map.of("title", "Chat"))).path("id").asString();
+        UUID id = UUID.fromString(course);
+        String path = "/api/v1/courses/" + course;
+        var update = request("PATCH", path + "/chat/settings", TEACHER, Map.of("mode", "ANNOUNCEMENTS"));
+        assertThat(update.statusCode()).isEqualTo(200);
+        var time = OffsetDateTime.ofInstant(NOW, ZoneOffset.UTC);
+        for (int i = 1; i <= 3; i++) {
+            jdbc.update("""
+                    insert into chat_message(id, course_id, author_id, author_role, author_display_name, body, client_message_id, created_at)
+                    values (?, ?, ?, 'TEACHER', 'Snapshot', ?, ?, ?)
+                    """, new UUID(0, i), id, TEACHER, "Message " + i, UUID.randomUUID(), time);
+        }
+        assertThat(request("POST", path + "/students", TEACHER, Map.of("studentId", STUDENT)).statusCode()).isEqualTo(201);
+        assertThat(json(get(STUDENT, path + "/chat/settings")).path("mode").asString()).isEqualTo("ANNOUNCEMENTS");
+        var first = json(get(STUDENT, path + "/chat/messages?limit=1"));
+        assertThat(first.path("messages").get(0).path("author").path("displayName").asString()).isEqualTo("Snapshot");
+        assertThat(first.path("messages").get(0).path("text").asString()).isEqualTo("Message 3");
+        jdbc.update("delete from chat_message where id = ?", new UUID(0, 3));
+        var next = json(get(STUDENT, path + "/chat/messages?limit=1&before=" + first.path("nextCursor").asString()));
+        assertThat(next.path("messages").get(0).path("text").asString()).isEqualTo("Message 2");
+        assertThat(get(STUDENT, path + "/chat/messages?limit=101").statusCode()).isEqualTo(400);
+        assertThat(get(OTHER, path + "/chat/messages").statusCode()).isEqualTo(404);
+    }
+
+    @Test
     void teacherCreatesOwnCourseWithoutIdempotencyHeaderAndGetsExactDto() throws Exception {
         var response = create(TEACHER, Map.of("title", "  Математика  "));
         assertThat(response.statusCode()).as(response.body()).isEqualTo(201);

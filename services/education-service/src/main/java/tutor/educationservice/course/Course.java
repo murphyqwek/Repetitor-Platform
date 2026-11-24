@@ -37,6 +37,8 @@ public class Course {
     }
 
     public UUID teacherId() { return teacherId; }
+    public ChatMode chatMode() { return chatMode; }
+    public void changeChatMode(ChatMode mode) { this.chatMode = mode; }
     void rename(String title) { this.title = title; }
     CourseDto dto() { return new CourseDto(id, teacherId, title, meetingUrl, chatMode, createdAt); }
 }
