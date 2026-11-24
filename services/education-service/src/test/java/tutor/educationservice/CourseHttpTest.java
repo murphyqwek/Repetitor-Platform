@@ -69,6 +69,8 @@ class CourseHttpTest {
 
     @BeforeEach
     void reset() throws Exception {
+        jdbc.update("delete from cleanup_job");
+        jdbc.update("delete from pending_upload");
         jdbc.update("delete from outbox_event");
         jdbc.update("delete from lesson_exception");
         jdbc.update("delete from lesson_series");
@@ -237,6 +239,39 @@ class CourseHttpTest {
 
         @Override
         public void close() { socket.abort(); }
+    }
+
+    @Test
+    void chatModerationHidesAttachmentsAndRetainsTheSendReceipt() throws Exception {
+        String course = json(create(TEACHER, Map.of("title", "Moderation"))).path("id").asString();
+        String path = "/api/v1/courses/" + course;
+        assertThat(request("POST", path + "/students", TEACHER, Map.of("studentId", STUDENT)).statusCode()).isEqualTo(201);
+        String attachment = json(uploadChatFile(path, STUDENT, "note.txt", "text/plain", "hello")).path("attachmentId").asString();
+        try (var author = new Stomp(STUDENT); var teacher = new Stomp(TEACHER)) {
+            author.subscribe("response", "/user/queue/chat.responses");
+            teacher.subscribe("course", "/topic/courses/" + course + "/chat");
+            teacher.subscribe("response", "/user/queue/chat.responses");
+            teacher.send(course, "{}");
+            assertThat(teacher.event().path("code").asString()).isEqualTo("INVALID_MESSAGE");
+            UUID clientId = UUID.randomUUID();
+            String command = mapper.writeValueAsString(Map.of("clientMessageId", clientId, "attachmentIds", List.of(attachment)));
+            author.send(course, command);
+            String message = author.event().path("messageId").asString();
+            var created = teacher.event().path("message");
+            assertThat(created.path("attachments").get(0).path("id").asString()).isEqualTo(attachment);
+            String messagePath = path + "/chat/messages/" + message;
+            assertThat(request("DELETE", messagePath, STUDENT, null).statusCode()).isEqualTo(403);
+            var deleted = request("DELETE", messagePath, TEACHER, null);
+            assertThat(deleted.statusCode()).as(deleted.body()).isEqualTo(202);
+            assertThat(teacher.event().path("type").asString()).isEqualTo("MESSAGE_DELETED");
+            assertThat(request("DELETE", messagePath, TEACHER, null).body()).isEqualTo(deleted.body());
+            assertThat(get(STUDENT, messagePath + "/attachments/" + attachment + "/content").statusCode()).isEqualTo(404);
+            assertThat(json(get(STUDENT, path + "/chat/messages")).path("messages").size()).isZero();
+            author.send(course, command);
+            assertThat(author.event().path("code").asString()).isEqualTo("MESSAGE_ALREADY_DELETED");
+            assertThat(jdbc.queryForObject("select count(*) from cleanup_job where resource_type = 'CHAT_MESSAGE'", Integer.class)).isEqualTo(1);
+            assertThat(jdbc.queryForObject("select count(*) from chat_send_receipt", Integer.class)).isEqualTo(1);
+        }
     }
 
     @Test

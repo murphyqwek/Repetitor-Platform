@@ -4,6 +4,7 @@ import java.util.UUID;
 import org.springframework.messaging.simp.*;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.util.MimeTypeUtils;
 import tools.jackson.databind.ObjectMapper;
 
@@ -24,6 +25,9 @@ class ChatEvents {
     void course(UUID courseId, Object event) {
         send("/topic/courses/" + courseId + "/chat", null, event);
     }
+
+    @TransactionalEventListener
+    public void deleted(ChatModeration.Deleted event) { course(event.courseId(), event); }
 
     private void send(String destination, String session, Object event) {
         var headers = SimpMessageHeaderAccessor.create(SimpMessageType.MESSAGE);

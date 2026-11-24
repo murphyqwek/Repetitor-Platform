@@ -8,6 +8,7 @@ import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import tutor.educationservice.course.Course.ChatMode;
+import tutor.educationservice.cleanup.DeletionReceipt;
 import tutor.educationservice.integration.storage.FileDownload;
 
 @RestController
@@ -18,11 +19,13 @@ public class ChatController {
     private final ChatHistory history;
     private final ChatAttachments attachments;
     private final FileDownload downloads;
+    private final ChatModeration moderation;
 
-    public ChatController(ChatHistory history, ChatAttachments attachments, FileDownload downloads) {
+    public ChatController(ChatHistory history, ChatAttachments attachments, FileDownload downloads, ChatModeration moderation) {
         this.history = history;
         this.attachments = attachments;
         this.downloads = downloads;
+        this.moderation = moderation;
     }
 
     @GetMapping("/settings")
@@ -50,5 +53,11 @@ public class ChatController {
     public ResponseEntity<InputStreamResource> download(@PathVariable UUID courseId, @PathVariable UUID messageId, @PathVariable UUID attachmentId) {
         var file = attachments.download(courseId, messageId, attachmentId);
         return downloads.response(file.key(), file.name(), file.type(), file.size());
+    }
+
+    @DeleteMapping("/messages/{messageId}")
+    public ResponseEntity<DeletionReceipt> delete(@PathVariable UUID courseId, @PathVariable UUID messageId) {
+        var receipt = moderation.delete(courseId, messageId);
+        return receipt == null ? ResponseEntity.noContent().build() : ResponseEntity.accepted().cacheControl(CacheControl.noStore()).body(receipt);
     }
 }

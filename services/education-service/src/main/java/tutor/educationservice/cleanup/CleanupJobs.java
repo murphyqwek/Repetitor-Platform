@@ -57,6 +57,12 @@ public class CleanupJobs {
                         row.getObject(3, UUID.class), row.getInt(4), row.getObject(5, UUID.class)));
     }
 
+    public UUID open(ResourceType type, UUID resourceId) {
+        return jdbc.queryForObject("""
+                select id from cleanup_job where resource_type = ? and resource_id = ? and status in ('PENDING', 'PROCESSING', 'FAILED')
+                """, UUID.class, type.name(), resourceId);
+    }
+
     @Transactional
     public boolean complete(Job job, CleanupHandler handler) {
         var rows = jdbc.queryForList("""
