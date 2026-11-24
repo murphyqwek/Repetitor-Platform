@@ -76,6 +76,11 @@ public class CourseService {
         return manageable(courses.findForUpdate(id, Course.DeletionState.ACTIVE).orElseThrow(CourseService::notFound));
     }
 
+    @Transactional(propagation = Propagation.MANDATORY)
+    public Course visibleForUpdate(UUID id) {
+        return visible(courses.findForUpdate(id, Course.DeletionState.ACTIVE).orElseThrow(CourseService::notFound));
+    }
+
     @Transactional(readOnly = true)
     public CoursePage list(Scope scope, UUID teacherId, Integer requestedLimit, String cursor) {
         int limit = CursorCodec.limit(requestedLimit);

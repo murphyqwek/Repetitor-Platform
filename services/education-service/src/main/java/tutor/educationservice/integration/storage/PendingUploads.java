@@ -47,8 +47,8 @@ public class PendingUploads implements CleanupHandler {
             } catch (IOException exception) {
                 throw new ApiException(HttpStatus.BAD_REQUEST, "INVALID_REQUEST", "Cannot read file");
             }
-            storage.copy(staging, key);
             T result = publish.get();
+            storage.copy(staging, key);
             jdbc.update("update pending_upload set published = true where id = ?", id);
             return result;
         });

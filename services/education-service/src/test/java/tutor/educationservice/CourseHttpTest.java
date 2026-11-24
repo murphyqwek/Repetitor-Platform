@@ -121,6 +121,31 @@ class CourseHttpTest {
     }
 
     @Test
+    void chatFilesArePrivateUntilAttachedAndAnnouncementsRejectStudents() throws Exception {
+        String course = json(create(TEACHER, Map.of("title", "Chat files"))).path("id").asString();
+        String path = "/api/v1/courses/" + course;
+        assertThat(request("POST", path + "/students", TEACHER, Map.of("studentId", STUDENT)).statusCode()).isEqualTo(201);
+        var uploaded = uploadChatFile(path, STUDENT, "note.txt", "text/plain", "hello");
+        assertThat(uploaded.statusCode()).as(uploaded.body()).isEqualTo(201);
+        String id = json(uploaded).path("attachmentId").asString();
+        assertThat(json(uploaded).path("state").asString()).isEqualTo("READY");
+        assertThat(get(STUDENT, path + "/chat/messages/" + UUID.randomUUID() + "/attachments/" + id + "/content").statusCode()).isEqualTo(404);
+        assertThat(uploadChatFile(path, STUDENT, "fake.png", "image/png", "not a png").statusCode()).isEqualTo(415);
+        assertThat(request("PATCH", path + "/chat/settings", TEACHER, Map.of("mode", "ANNOUNCEMENTS")).statusCode()).isEqualTo(200);
+        assertThat(uploadChatFile(path, STUDENT, "note.txt", "text/plain", "hello").statusCode()).isEqualTo(403);
+        assertThat(uploadChatFile(path, ADMIN, "note.txt", "text/plain", "hello").statusCode()).isEqualTo(201);
+    }
+
+    private HttpResponse<String> uploadChatFile(String path, UUID actor, String filename, String type, String content) throws Exception {
+        String token = TestJwt.token(PEOPLE.get(actor).roles(), claims -> claims.subject(actor.toString()), false);
+        String body = "--test-boundary\r\nContent-Disposition: form-data; name=\"file\"; filename=\"" + filename + "\"\r\n"
+                + "Content-Type: " + type + "\r\n\r\n" + content + "\r\n--test-boundary--\r\n";
+        return HTTP.send(HttpRequest.newBuilder(URI.create("http://localhost:" + port + path + "/chat/attachments")).timeout(Duration.ofSeconds(10))
+                .header("Authorization", "Bearer " + token).header("Content-Type", "multipart/form-data; boundary=test-boundary")
+                .POST(HttpRequest.BodyPublishers.ofString(body)).build(), HttpResponse.BodyHandlers.ofString());
+    }
+
+    @Test
     void teacherCreatesOwnCourseWithoutIdempotencyHeaderAndGetsExactDto() throws Exception {
         var response = create(TEACHER, Map.of("title", "  Математика  "));
         assertThat(response.statusCode()).as(response.body()).isEqualTo(201);

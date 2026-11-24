@@ -22,11 +22,13 @@ class ChatHistory {
     private final CourseService courses;
     private final JdbcTemplate jdbc;
     private final CursorCodec cursors;
+    private final ChatAttachments attachments;
 
-    ChatHistory(CourseService courses, JdbcTemplate jdbc, CursorCodec cursors) {
+    ChatHistory(CourseService courses, JdbcTemplate jdbc, CursorCodec cursors, ChatAttachments attachments) {
         this.courses = courses;
         this.jdbc = jdbc;
         this.cursors = cursors;
+        this.attachments = attachments;
     }
 
     public Settings settings(UUID course) { return new Settings(courses.get(course).chatMode()); }
@@ -53,7 +55,7 @@ class ChatHistory {
         var messages = rows.subList(0, Math.min(limit, rows.size()));
         var last = more ? messages.get(messages.size() - 1) : null;
         String next = last == null ? null : cursors.encode(new CursorCodec.Position(last.createdAt(), last.id()), binding);
-        return new Page(messages, next, more);
+        return new Page(attachments.populate(course, messages), next, more);
     }
 
     static ChatMessage message(ResultSet row) throws SQLException {
