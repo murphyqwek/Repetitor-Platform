@@ -20,6 +20,10 @@ public interface CourseRepository extends JpaRepository<Course, UUID> {
     @Query("select c from Course c where c.id = :id and c.deletionState = :state")
     Optional<Course> findForUpdate(@Param("id") UUID id, @Param("state") Course.DeletionState state);
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select c from Course c where c.id = :id")
+    Optional<Course> findForDeletion(@Param("id") UUID id);
+
     @Query(value = """
             SELECT * FROM course
             WHERE deletion_state = 'ACTIVE'

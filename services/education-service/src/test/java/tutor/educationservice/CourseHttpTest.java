@@ -2,6 +2,8 @@ package tutor.educationservice;
 
 import io.minio.BucketExistsArgs;
 import io.minio.MinioClient;
+import io.minio.RemoveObjectArgs;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.net.*;
 import java.net.http.*;
 import java.time.*;
@@ -23,10 +25,13 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import tutor.educationservice.IdentityHttpStub.Person;
+import tutor.educationservice.cleanup.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 
 @Testcontainers
 @ActiveProfiles("test")
@@ -65,12 +70,16 @@ class CourseHttpTest {
     @Autowired JdbcTemplate jdbc;
     @Autowired DataSource dataSource;
     @Autowired ObjectMapper mapper;
+    @Autowired CleanupJobs cleanupJobs;
+    @Autowired List<CleanupHandler> cleanupHandlers;
     @LocalServerPort int port;
 
     @BeforeEach
     void reset() throws Exception {
         jdbc.update("delete from cleanup_job");
         jdbc.update("delete from pending_upload");
+        jdbc.update("delete from material_reference");
+        jdbc.update("delete from material_file");
         jdbc.update("delete from outbox_event");
         jdbc.update("delete from lesson_exception");
         jdbc.update("delete from lesson_series");
@@ -272,6 +281,49 @@ class CourseHttpTest {
             assertThat(jdbc.queryForObject("select count(*) from cleanup_job where resource_type = 'CHAT_MESSAGE'", Integer.class)).isEqualTo(1);
             assertThat(jdbc.queryForObject("select count(*) from chat_send_receipt", Integer.class)).isEqualTo(1);
         }
+    }
+
+    @Test
+    void courseDeletionRetriesStorageFailureAndKeepsTheLibrary() throws Exception {
+        UUID course = UUID.fromString(json(create(TEACHER, Map.of("title", "Delete"))).path("id").asString());
+        String path = "/api/v1/courses/" + course;
+        assertThat(request("POST", path + "/students", TEACHER, Map.of("studentId", STUDENT)).statusCode()).isEqualTo(201);
+        assertThat(uploadChatFile(path, STUDENT, "note.txt", "text/plain", "hello").statusCode()).isEqualTo(201);
+        var starts = OffsetDateTime.ofInstant(NOW.plusSeconds(3600), ZoneOffset.UTC);
+        jdbc.update("insert into single_lesson values (?, ?, ?, ?, ?)", UUID.randomUUID(), course, starts, starts.plusMinutes(45), starts);
+        UUID file = UUID.randomUUID();
+        jdbc.update("""
+                insert into material_file(id, teacher_id, name, object_key, mime_type, size_bytes)
+                values (?, ?, 'Library', ?, 'text/plain', 1)
+                """, file, TEACHER, "materials/" + file);
+        jdbc.update("insert into file_course_access values (?, ?, true)", file, course);
+        jdbc.update("insert into material_reference(id, file_id, consumer_service, consumer_entity_id) values (?, ?, 'ASSIGNMENT', ?)",
+                UUID.randomUUID(), file, UUID.randomUUID());
+        assertThat(request("DELETE", path, OTHER, null).statusCode()).isEqualTo(404);
+        var deleted = request("DELETE", path, TEACHER, null);
+        assertThat(deleted.statusCode()).as(deleted.body()).isEqualTo(202);
+        assertThat(get(STUDENT, path + "/chat/messages").statusCode()).isEqualTo(404);
+        assertThat(request("DELETE", path, TEACHER, null).body()).isEqualTo(deleted.body());
+        assertThat(uploadChatFile(path, STUDENT, "note.txt", "text/plain", "hello").statusCode()).isEqualTo(404);
+
+        UUID job = UUID.fromString(json(deleted).path("cleanupJobId").asString());
+        var worker = new CleanupWorker(cleanupJobs, cleanupHandlers,
+                new CleanupProperties(Duration.ofMinutes(1), 10, 3, Duration.ofSeconds(1), Duration.ofMinutes(1)), new SimpleMeterRegistry());
+        doThrow(new java.io.IOException("Storage unavailable")).when(minio).removeObject(any(RemoveObjectArgs.class));
+        worker.poll();
+        assertThat(jdbc.queryForObject("select deletion_state from course where id = ?", String.class, course)).isEqualTo("DELETING");
+        assertThat(jdbc.queryForObject("select count(*) from chat_attachment where course_id = ?", Integer.class, course)).isEqualTo(1);
+        assertThat(jdbc.queryForObject("select status from cleanup_job where id = ?", String.class, job)).isEqualTo("PENDING");
+        jdbc.update("update cleanup_job set next_attempt_at = clock_timestamp() where id = ?", job);
+        doNothing().when(minio).removeObject(any(RemoveObjectArgs.class));
+        worker.poll();
+        assertThat(jdbc.queryForObject("select status from cleanup_job where id = ?", String.class, job)).isEqualTo("COMPLETED");
+        for (String table : List.of("chat_attachment", "course_student", "single_lesson", "file_course_access")) {
+            assertThat(jdbc.queryForObject("select count(*) from " + table + " where course_id = ?", Integer.class, course)).isZero();
+        }
+        assertThat(request("DELETE", path, TEACHER, null).statusCode()).isEqualTo(404);
+        assertThat(jdbc.queryForObject("select count(*) from material_file where id = ?", Integer.class, file)).isEqualTo(1);
+        assertThat(jdbc.queryForObject("select count(*) from material_reference where file_id = ?", Integer.class, file)).isEqualTo(1);
     }
 
     @Test

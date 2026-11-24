@@ -8,13 +8,18 @@ import org.springframework.http.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
+import tutor.educationservice.cleanup.DeletionReceipt;
 
 @RestController
 @RequestMapping("/api/v1/courses")
 public class CourseController {
     private final CourseService courses;
+    private final CourseDeletion deletion;
 
-    public CourseController(CourseService courses) { this.courses = courses; }
+    public CourseController(CourseService courses, CourseDeletion deletion) {
+        this.courses = courses;
+        this.deletion = deletion;
+    }
 
     public record CreateRequest(@NotBlank String title, UUID teacherId) {}
     public record RenameRequest(@NotBlank String title) {}
@@ -33,6 +38,11 @@ public class CourseController {
     @PatchMapping("/{courseId}")
     public ResponseEntity<CourseDto> rename(@PathVariable UUID courseId, @Valid @RequestBody RenameRequest body) {
         return ResponseEntity.ok().cacheControl(CacheControl.noStore()).body(courses.rename(courseId, body.title()));
+    }
+
+    @DeleteMapping("/{courseId}")
+    public ResponseEntity<DeletionReceipt> delete(@PathVariable UUID courseId) {
+        return ResponseEntity.accepted().cacheControl(CacheControl.noStore()).body(deletion.start(courseId));
     }
 
     @GetMapping

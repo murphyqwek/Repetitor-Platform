@@ -14,6 +14,7 @@ import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.WebSocketSession;
 import tutor.educationservice.common.error.ApiException;
+import tutor.educationservice.course.CourseDeletion;
 import tutor.educationservice.course.CourseService;
 import tutor.educationservice.course.EnrollmentService;
 import tutor.educationservice.security.*;
@@ -102,6 +103,13 @@ class ChatSocketSessions {
         sessions.forEach((id, session) -> {
             if (session.jwt != null && session.jwt.getSubject().equals(event.studentId().toString())
                     && session.courses.containsValue(event.courseId())) close(id);
+        });
+    }
+
+    @TransactionalEventListener
+    public void courseDeleted(CourseDeletion.Started event) {
+        sessions.forEach((id, session) -> {
+            if (session.courses.containsValue(event.courseId())) close(id);
         });
     }
 
