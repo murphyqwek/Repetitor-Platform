@@ -146,6 +146,100 @@ class CourseHttpTest {
     }
 
     @Test
+    void chatWebSocketAcknowledgesCommittedSendsAndRevokesRemovedStudent() throws Exception {
+        String course = json(create(TEACHER, Map.of("title", "Live chat"))).path("id").asString();
+        String path = "/api/v1/courses/" + course;
+        assertThat(request("POST", path + "/students", TEACHER, Map.of("studentId", STUDENT)).statusCode()).isEqualTo(201);
+        try (var author = new Stomp(TEACHER); var member = new Stomp(STUDENT)) {
+            author.subscribe("response", "/user/queue/chat.responses");
+            member.subscribe("course", "/topic/courses/" + course + "/chat");
+            UUID clientId = UUID.randomUUID();
+            String command = mapper.writeValueAsString(Map.of("clientMessageId", clientId, "text", "Hello", "attachmentIds", List.of()));
+            // Wait for the student subscription to be processed by sending a command on that connection.
+            member.subscribe("response", "/user/queue/chat.responses");
+            member.send(course, "{}");
+            assertThat(member.event().path("code").asString()).isEqualTo("INVALID_MESSAGE");
+            author.send(course, command);
+            var ack = author.event();
+            assertThat(ack.path("type").asString()).isEqualTo("MESSAGE_ACCEPTED");
+            String id = ack.path("messageId").asString();
+            assertThat(jdbc.queryForObject("select body from chat_message where id = ?", String.class, UUID.fromString(id))).isEqualTo("Hello");
+            var created = member.event();
+            assertThat(created.path("type").asString()).isEqualTo("MESSAGE_CREATED");
+            assertThat(created.path("message").path("id").asString()).isEqualTo(id);
+            author.send(course, command);
+            assertThat(author.event()).isEqualTo(ack);
+            author.send(course, command.replace("Hello", "Changed"));
+            assertThat(author.event().path("code").asString()).isEqualTo("CLIENT_MESSAGE_ID_CONFLICT");
+            assertThat(jdbc.queryForObject("select count(*) from chat_message", Integer.class)).isEqualTo(1);
+            assertThat(request("DELETE", path + "/students/" + STUDENT, TEACHER, null).statusCode()).isEqualTo(204);
+            assertThat(member.closed.get(10, TimeUnit.SECONDS)).isEqualTo(1008);
+        }
+    }
+
+    private final class Stomp implements WebSocket.Listener, AutoCloseable {
+        private final BlockingQueue<String> frames = new LinkedBlockingQueue<>();
+        private final CompletableFuture<Integer> closed = new CompletableFuture<>();
+        private final StringBuilder buffer = new StringBuilder();
+        private final WebSocket socket;
+
+        private Stomp(UUID user) throws Exception {
+            socket = HTTP.newWebSocketBuilder().subprotocols("v12.stomp").connectTimeout(Duration.ofSeconds(5))
+                    .buildAsync(URI.create("ws://localhost:" + port + "/ws"), this).get(10, TimeUnit.SECONDS);
+            String token = TestJwt.token(PEOPLE.get(user).roles(), claims -> claims.subject(user.toString()), false);
+            sendFrame("CONNECT\naccept-version:1.2\nhost:localhost\nAuthorization:Bearer " + token + "\n\n");
+            assertThat(take()).startsWith("CONNECTED");
+        }
+
+        private void subscribe(String id, String destination) throws Exception {
+            sendFrame("SUBSCRIBE\nid:" + id + "\ndestination:" + destination + "\n\n");
+        }
+
+        private void send(String course, String body) throws Exception {
+            sendFrame("SEND\ndestination:/app/courses/" + course + "/chat.send\ncontent-type:application/json\n\n" + body);
+        }
+
+        private void sendFrame(String frame) throws Exception { socket.sendText(frame + "\0", true).get(5, TimeUnit.SECONDS); }
+
+        private String take() throws InterruptedException {
+            String value = frames.poll(10, TimeUnit.SECONDS);
+            assertThat(value).as("STOMP frame").isNotNull();
+            return value;
+        }
+
+        private JsonNode event() throws InterruptedException {
+            String frame = take();
+            assertThat(frame).startsWith("MESSAGE");
+            return mapper.readTree(frame.substring(frame.indexOf("\n\n") + 2));
+        }
+
+        @Override
+        public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last) {
+            buffer.append(data);
+            if (last) {
+                for (String frame : buffer.toString().split("\0")) {
+                    if (!frame.isBlank()) frames.add(frame.stripLeading());
+                }
+                buffer.setLength(0);
+            }
+            webSocket.request(1);
+            return null;
+        }
+
+        @Override
+        public CompletionStage<?> onClose(WebSocket webSocket, int statusCode, String reason) {
+            closed.complete(statusCode);
+            return null;
+        }
+
+        @Override
+        public void onError(WebSocket webSocket, Throwable error) { closed.completeExceptionally(error); }
+
+        @Override
+        public void close() { socket.abort(); }
+    }
+
+    @Test
     void teacherCreatesOwnCourseWithoutIdempotencyHeaderAndGetsExactDto() throws Exception {
         var response = create(TEACHER, Map.of("title", "  Математика  "));
         assertThat(response.statusCode()).as(response.body()).isEqualTo(201);

@@ -4,6 +4,7 @@ import java.time.Clock;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.UUID;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -17,6 +18,8 @@ import tutor.educationservice.schedule.ScheduleConflictService;
 
 @Service
 public class EnrollmentService {
+    public record Excluded(UUID courseId, UUID studentId) {}
+
     private final CourseService courses;
     private final CourseStudentRepository students;
     private final IdentityClient identity;
@@ -24,9 +27,11 @@ public class EnrollmentService {
     private final Clock clock;
     private final TransactionTemplate transaction;
     private final ScheduleConflictService conflicts;
+    private final ApplicationEventPublisher events;
 
     public EnrollmentService(CourseService courses, CourseStudentRepository students, IdentityClient identity,
-            CursorCodec cursors, Clock clock, PlatformTransactionManager transactionManager, ScheduleConflictService conflicts) {
+            CursorCodec cursors, Clock clock, PlatformTransactionManager transactionManager, ScheduleConflictService conflicts,
+            ApplicationEventPublisher events) {
         this.courses = courses;
         this.students = students;
         this.identity = identity;
@@ -34,6 +39,7 @@ public class EnrollmentService {
         this.clock = clock;
         this.transaction = new TransactionTemplate(transactionManager);
         this.conflicts = conflicts;
+        this.events = events;
     }
 
     public CourseStudentDto enroll(UUID courseId, UUID studentId, String accessToken, boolean confirmed) {
@@ -56,7 +62,7 @@ public class EnrollmentService {
     public void exclude(UUID courseId, UUID studentId) {
         transaction.executeWithoutResult(status -> {
             courses.managedForUpdate(courseId);
-            students.exclude(courseId, studentId);
+            if (students.exclude(courseId, studentId) != 0) events.publishEvent(new Excluded(courseId, studentId));
         });
     }
 

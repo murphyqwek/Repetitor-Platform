@@ -12,19 +12,19 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtGra
 import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 import tutor.educationservice.common.error.Problems;
-import tutor.educationservice.integration.identity.IdentityClient;
 
 @Configuration
 @EnableMethodSecurity
 public class SecurityConfiguration {
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http, IdentityClient identity, Problems problems) throws Exception {
+    SecurityFilterChain securityFilterChain(HttpSecurity http, IdentityAuthentication identity, Problems problems) throws Exception {
         var authorities = new JwtGrantedAuthoritiesConverter();
         authorities.setAuthoritiesClaimName("roles");
         authorities.setAuthorityPrefix("ROLE_");
         var converter = new JwtAuthenticationConverter();
         converter.setJwtGrantedAuthoritiesConverter(authorities);
         return http.authorizeHttpRequests(auth -> auth
+                .requestMatchers(HttpMethod.GET, "/ws").permitAll()
                 .requestMatchers(HttpMethod.GET, "/actuator/health", "/actuator/health/liveness", "/actuator/health/readiness").permitAll()
                 .requestMatchers("/api/v1/**").hasAnyRole("TEACHER", "STUDENT", "ADMIN")
                 .anyRequest().denyAll())
