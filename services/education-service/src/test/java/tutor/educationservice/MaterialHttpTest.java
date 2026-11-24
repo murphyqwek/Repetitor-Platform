@@ -59,6 +59,8 @@ class MaterialHttpTest {
         jdbc.update("delete from pending_upload");
         jdbc.update("delete from material_file");
         jdbc.update("delete from material_folder");
+        jdbc.update("delete from course_student");
+        jdbc.update("delete from course");
         doAnswer(call -> {
             try (InputStream stream = call.getArgument(1)) {
                 objects.put(call.getArgument(0), stream.readAllBytes());
@@ -101,6 +103,33 @@ class MaterialHttpTest {
         assertThat(jdbc.queryForObject("select count(*) from material_file", Integer.class)).isZero();
         assertThat(jdbc.queryForObject("select count(*) from pending_upload where not published", Integer.class)).isEqualTo(1);
         assertThat(jdbc.queryForObject("select resource_type from cleanup_job", String.class)).isEqualTo("PENDING_UPLOAD");
+    }
+
+    @Test
+    void parentGrantsAndFileRulesApplyOnlyThroughTheSelectedCourse() throws Exception {
+        String parent = id(request("POST", "/materials/folders", TEACHER, "{\"name\":\"Parent\"}"), 201);
+        String child = id(request("POST", "/materials/folders", TEACHER, "{\"name\":\"Child\",\"parentId\":\"" + parent + "\"}"), 201);
+        String file = id(upload(TEACHER, child), 201);
+        String first = id(request("POST", "/courses", TEACHER, "{\"title\":\"First\"}"), 201);
+        String second = id(request("POST", "/courses", TEACHER, "{\"title\":\"Second\"}"), 201);
+        for (String course : List.of(first, second)) {
+            assertThat(request("POST", "/courses/" + course + "/students", TEACHER, "{\"studentId\":\"" + STUDENT + "\"}").statusCode()).isEqualTo(201);
+            assertThat(request("PUT", "/materials/folders/" + parent + "/course-access/" + course, TEACHER, null).statusCode()).isEqualTo(204);
+        }
+        String list = "/courses/" + first + "/materials";
+        var visible = request("GET", list + "?limit=1", STUDENT, null);
+        assertThat(visible.statusCode()).as(visible.body()).isEqualTo(200);
+        assertThat(mapper.readTree(visible.body()).path("items").get(0).path("id").asString()).isEqualTo(file);
+        String path = list + "/files/" + file + "/content";
+        assertThat(request("GET", path, STUDENT, null).statusCode()).isEqualTo(200);
+        String rule = "/materials/files/" + file + "/course-access/" + first;
+        assertThat(request("PUT", rule, TEACHER, "{\"allowRead\":false}").statusCode()).isEqualTo(204);
+        assertThat(request("GET", path, STUDENT, null).statusCode()).isEqualTo(404);
+        assertThat(request("GET", "/courses/" + second + "/materials/files/" + file + "/content", STUDENT, null).statusCode()).isEqualTo(200);
+        assertThat(request("DELETE", rule, TEACHER, null).statusCode()).isEqualTo(204);
+        assertThat(request("GET", path, STUDENT, null).statusCode()).isEqualTo(200);
+        assertThat(request("DELETE", "/courses/" + first + "/students/" + STUDENT, TEACHER, null).statusCode()).isEqualTo(204);
+        assertThat(request("GET", path, STUDENT, null).statusCode()).isEqualTo(404);
     }
 
     String id(HttpResponse<String> response, int status) {

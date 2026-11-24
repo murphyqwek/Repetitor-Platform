@@ -59,11 +59,11 @@ class EducationContextTest {
 
     @Test
     void contextLoadsAndFlywayInitializesRealPostgresInUtc() {
-        assertThat(jdbc.queryForObject("select count(*) from flyway_schema_history where success", Integer.class)).isEqualTo(8);
+        assertThat(jdbc.queryForObject("select count(*) from flyway_schema_history where success", Integer.class)).isEqualTo(9);
         assertThat(jdbc.queryForObject("show timezone", String.class)).isEqualTo("UTC");
         assertThat(jdbc.queryForList("select table_name from information_schema.tables where table_schema='public' order by table_name", String.class))
-                .containsExactly("cleanup_job", "course", "course_student", "flyway_schema_history", "lesson_exception", "lesson_series",
-                        "material_file", "material_folder", "outbox_event", "pending_upload", "single_lesson");
+                .containsExactly("cleanup_job", "course", "course_student", "file_course_access", "flyway_schema_history", "folder_course_access",
+                        "lesson_exception", "lesson_series", "material_file", "material_folder", "outbox_event", "pending_upload", "single_lesson");
     }
 
     @Test
