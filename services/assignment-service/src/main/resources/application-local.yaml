@@ -1,0 +1,12 @@
+spring:
+  datasource:
+    url: ${ASSIGNMENT_DB_URL:jdbc:postgresql://localhost:5434/assignment}
+    username: ${ASSIGNMENT_DB_USER:assignment}
+server:
+  port: ${ASSIGNMENT_PORT:8082}
+assignment:
+  kafka:
+    bootstrap-servers: ${ASSIGNMENT_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+  storage:
+    endpoint: ${ASSIGNMENT_S3_ENDPOINT:http://localhost:9000}
+    bucket: ${ASSIGNMENT_S3_BUCKET:assignment-private}
