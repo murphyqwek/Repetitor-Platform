@@ -1,0 +1,49 @@
+education-1  | Picked up JAVA_TOOL_OPTIONS: -Duser.timezone=UTC
+education-1  | 
+education-1  |   .   ____          _            __ _ _
+education-1  |  /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+education-1  | ( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+education-1  |  \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+education-1  |   '  |____| .__|_| |_|_| |_\__, | / / / /
+education-1  |  =========|_|==============|___/=/_/_/_/
+education-1  | 
+education-1  |  :: Spring Boot ::                (v4.1.1)
+education-1  | 
+education-1  | 2026-11-20T15:31:30.085Z  INFO 1 --- [education-service] [           main] t.e.EducationServiceApplication          : Starting EducationServiceApplication v0.0.1-SNAPSHOT using Java 17.0.21 with PID 1 (/app/app.jar started by ? in /app)
+education-1  | 2026-11-20T15:31:30.089Z  INFO 1 --- [education-service] [           main] t.e.EducationServiceApplication          : The following 1 profile is active: "local"
+education-1  | 2026-11-20T15:31:30.787Z  INFO 1 --- [education-service] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+education-1  | 2026-11-20T15:31:30.803Z  INFO 1 --- [education-service] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 9 ms. Found 0 JPA repository interfaces.
+education-1  | 2026-11-20T15:31:31.408Z  INFO 1 --- [education-service] [           main] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8080 (http)
+education-1  | 2026-11-20T15:31:31.422Z  INFO 1 --- [education-service] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+education-1  | 2026-11-20T15:31:31.422Z  INFO 1 --- [education-service] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.24]
+education-1  | 2026-11-20T15:31:31.454Z  INFO 1 --- [education-service] [           main] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 1313 ms
+education-1  | 2026-11-20T15:31:31.793Z  INFO 1 --- [education-service] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+education-1  | 2026-11-20T15:31:31.921Z  INFO 1 --- [education-service] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@3dda8a2e
+education-1  | 2026-11-20T15:31:31.923Z  INFO 1 --- [education-service] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+education-1  | 2026-11-20T15:31:31.942Z  INFO 1 --- [education-service] [           main] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://education-postgres:5432/education (PostgreSQL 17.12)
+education-1  | 2026-11-20T15:31:31.996Z  INFO 1 --- [education-service] [           main] o.f.core.internal.command.DbValidate     : Successfully validated 1 migration (execution time 00:00.020s)
+education-1  | 2026-11-20T15:31:32.028Z  INFO 1 --- [education-service] [           main] o.f.core.internal.command.DbMigrate      : Current version of schema "public": 1
+education-1  | 2026-11-20T15:31:32.030Z  INFO 1 --- [education-service] [           main] o.f.core.internal.command.DbMigrate      : Schema "public" is up to date. No migration necessary.
+education-1  | 2026-11-20T15:31:32.128Z  INFO 1 --- [education-service] [           main] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+education-1  | 2026-11-20T15:31:32.181Z  INFO 1 --- [education-service] [           main] org.hibernate.orm.core                   : HHH000001: Hibernate ORM core version 7.4.5.Final
+education-1  | 2026-11-20T15:31:32.619Z  INFO 1 --- [education-service] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+education-1  | 2026-11-20T15:31:32.734Z  INFO 1 --- [education-service] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+education-1  | 	Database JDBC URL [jdbc:postgresql://education-postgres:5432/education]
+education-1  | 	Database driver: PostgreSQL JDBC Driver
+education-1  | 	Database dialect: PostgreSQLDialect
+education-1  | 	Database version: 17.12
+education-1  | 	Default catalog/schema: education/public
+education-1  | 	Autocommit mode: undefined/unknown
+education-1  | 	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+education-1  | 	JDBC fetch size: none
+education-1  | 	Pool: DataSourceConnectionProvider
+education-1  | 	Minimum pool size: undefined/unknown
+education-1  | 	Maximum pool size: undefined/unknown
+education-1  | 2026-11-20T15:31:33.205Z  INFO 1 --- [education-service] [           main] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+education-1  | 2026-11-20T15:31:33.242Z  INFO 1 --- [education-service] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+education-1  | 2026-11-20T15:31:34.089Z  INFO 1 --- [education-service] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 1 endpoint beneath base path '/actuator'
+education-1  | 2026-11-20T15:31:34.149Z  INFO 1 --- [education-service] [           main] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8080 (http) with context path '/'
+education-1  | 2026-11-20T15:31:34.157Z  INFO 1 --- [education-service] [           main] t.e.EducationServiceApplication          : Started EducationServiceApplication in 4.479 seconds (process running for 5.204)
+education-1  | 2026-11-20T15:31:39.090Z  INFO 1 --- [education-service] [nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+education-1  | 2026-11-20T15:31:39.090Z  INFO 1 --- [education-service] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+education-1  | 2026-11-20T15:31:39.091Z  INFO 1 --- [education-service] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms

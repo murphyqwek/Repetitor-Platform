@@ -2,6 +2,18 @@
 name: tutor-platform-local
 
 services:
+  nginx:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      API_UPSTREAM: ${API_UPSTREAM:-host.docker.internal:8080}
+    ports:
+      - "127.0.0.1:8090:80"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
   postgres:
     image: postgres:17-alpine
     restart: unless-stopped
@@ -20,6 +32,98 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+
+  education-postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: education
+      POSTGRES_USER: ${EDUCATION_DB_USER:?set EDUCATION_DB_USER in .env}
+      POSTGRES_PASSWORD: ${EDUCATION_DB_PASSWORD:?set EDUCATION_DB_PASSWORD in .env}
+    ports:
+      - "127.0.0.1:${EDUCATION_DB_HOST_PORT:-5433}:5432"
+    volumes:
+      - education_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d education"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  minio:
+    # Explicit local Silo fork decision: docs/артефакты/education-service/ADR-001-local-object-storage.md.
+    image: pgsty/silo:RELEASE.2026-11-12T00-00-00Z@sha256:c20d112390b9a9ce8c11b8af95ad35bcaa62f4759663c09c936cd8d2b511f329
+    restart: unless-stopped
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?set MINIO_ROOT_USER in .env}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?set MINIO_ROOT_PASSWORD in .env}
+    ports:
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9001:9001"
+    volumes:
+      - education_minio_data:/data
+    healthcheck:
+      test: ["CMD", "/usr/bin/silo", "healthcheck", "ready"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  minio-init:
+    image: pgsty/mc:RELEASE.2026-11-12T00-00-00Z@sha256:b532278b7a3747dbab6fe45eebb40a653efa704e6758e24e9d9ec54fc96c1800
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:?set MINIO_ROOT_USER in .env}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?set MINIO_ROOT_PASSWORD in .env}
+      EDUCATION_S3_BUCKET: ${EDUCATION_S3_BUCKET:-education-private}
+      EDUCATION_S3_ACCESS_KEY: ${EDUCATION_S3_ACCESS_KEY:?set EDUCATION_S3_ACCESS_KEY in .env}
+      EDUCATION_S3_SECRET_KEY: ${EDUCATION_S3_SECRET_KEY:?set EDUCATION_S3_SECRET_KEY in .env}
+    volumes:
+      - ./minio/bootstrap.sh:/bootstrap.sh:ro
+    entrypoint: ["/bin/sh", "/bootstrap.sh"]
+    restart: "no"
+
+  education:
+    build:
+      context: ../../services/education-service
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      EDUCATION_PORT: 8080
+      EDUCATION_JWT_PUBLIC_KEY_LOCATION: file:/run/keys/identity-public.pem
+      EDUCATION_JWT_ISSUER: ${EDUCATION_JWT_ISSUER:-rp-identity}
+      EDUCATION_IDENTITY_BASE_URL: ${EDUCATION_IDENTITY_DOCKER_URL:-http://host.docker.internal:8080}
+      EDUCATION_CURSOR_KEY: ${EDUCATION_CURSOR_KEY:?set EDUCATION_CURSOR_KEY in .env}
+      EDUCATION_ASSIGNMENT_TOKEN: ${EDUCATION_ASSIGNMENT_TOKEN:-}
+      EDUCATION_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      EDUCATION_SCHEDULE_TOPIC: ${EDUCATION_SCHEDULE_TOPIC:-education.schedule.v1}
+      EDUCATION_OUTBOX_ENABLED: "true"
+      EDUCATION_DB_URL: jdbc:postgresql://education-postgres:5432/education
+      EDUCATION_DB_USER: ${EDUCATION_DB_USER:?set EDUCATION_DB_USER in .env}
+      EDUCATION_DB_PASSWORD: ${EDUCATION_DB_PASSWORD:?set EDUCATION_DB_PASSWORD in .env}
+      EDUCATION_S3_ENDPOINT: http://minio:9000
+      EDUCATION_S3_BUCKET: ${EDUCATION_S3_BUCKET:-education-private}
+      EDUCATION_S3_ACCESS_KEY: ${EDUCATION_S3_ACCESS_KEY:?set EDUCATION_S3_ACCESS_KEY in .env}
+      EDUCATION_S3_SECRET_KEY: ${EDUCATION_S3_SECRET_KEY:?set EDUCATION_S3_SECRET_KEY in .env}
+    volumes:
+      - ../../dev_secrets/jwt_public.pem:/run/keys/identity-public.pem:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "127.0.0.1:8081:8080"
+    depends_on:
+      education-postgres:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "--max-time", "5", "http://localhost:8080/actuator/health/readiness"]
+      interval: 10s
+      timeout: 6s
+      start_period: 40s
+      retries: 6
 
   redis:
     image: redis:7.4-alpine
@@ -79,3 +183,5 @@ volumes:
   postgres_data:
   redis_data:
   kafka_data:
+  education_postgres_data:
+  education_minio_data:

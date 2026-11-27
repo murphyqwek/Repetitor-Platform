@@ -1,0 +1,54 @@
+NAME                                        IMAGE                                                                                                             COMMAND                  SERVICE              CREATED              STATUS                          PORTS
+tutor-platform-local-education-1            tutor-platform-local-education                                                                                    "java -jar /app/app.…"   education            About a minute ago   Up About a minute (healthy)     127.0.0.1:8081->8080/tcp
+tutor-platform-local-education-postgres-1   postgres:17-alpine                                                                                                "docker-entrypoint.s…"   education-postgres   30 minutes ago       Up 30 minutes (healthy)         127.0.0.1:5433->5432/tcp
+tutor-platform-local-kafka-1                apache/kafka:4.1.1                                                                                                "/__cacert_entrypoin…"   kafka                7 days ago           Up 42 minutes                   127.0.0.1:9092->9092/tcp
+tutor-platform-local-minio-1                pgsty/silo:RELEASE.2026-11-12T00-00-00Z@sha256:c20d112390b9a9ce8c11b8af95ad35bcaa62f4759663c09c936cd8d2b511f329   "/usr/bin/docker-ent…"   minio                21 minutes ago       Up 17 minutes (healthy)         127.0.0.1:9000-9001->9000-9001/tcp
+tutor-platform-local-minio-init-1           pgsty/mc:RELEASE.2026-11-12T00-00-00Z@sha256:b532278b7a3747dbab6fe45eebb40a653efa704e6758e24e9d9ec54fc96c1800     "/bin/sh /bootstrap.…"   minio-init           21 minutes ago       Exited (0) About a minute ago   
+tutor-platform-local-nginx-1                tutor-platform-local-nginx                                                                                        "/docker-entrypoint.…"   nginx                About a minute ago   Up About a minute               127.0.0.1:8090->80/tcp
+tutor-platform-local-postgres-1             postgres:17-alpine                                                                                                "docker-entrypoint.s…"   postgres             7 days ago           Up 42 minutes (healthy)         127.0.0.1:5432->5432/tcp
+tutor-platform-local-redis-1                redis:7.4-alpine                                                                                                  "docker-entrypoint.s…"   redis                7 days ago           Up 42 minutes (healthy)         127.0.0.1:6379->6379/tcp
+HTTP/1.1 200 
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 0
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: 0
+X-Frame-Options: DENY
+Content-Type: application/vnd.spring-boot.actuator.v3+json
+Transfer-Encoding: chunked
+Date: Fri, 20 Nov 2026 14:40:45 GMT
+
+{"status":"UP"}HTTP/1.1 200 
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 0
+Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+Pragma: no-cache
+Expires: 0
+X-Frame-Options: DENY
+Content-Type: application/vnd.spring-boot.actuator.v3+json
+Transfer-Encoding: chunked
+Date: Fri, 20 Nov 2026 14:40:45 GMT
+
+{"status":"UP"}HTTP/1.1 401 
+Cache-Control: no-store
+WWW-Authenticate: Bearer
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 0
+X-Frame-Options: DENY
+Content-Type: application/problem+json;charset=UTF-8
+Content-Length: 94
+Date: Fri, 20 Nov 2026 14:40:46 GMT
+
+{"detail":"Authentication required","status":401,"title":"Unauthorized","code":"UNAUTHORIZED"}HTTP/1.1 401 
+Cache-Control: no-store
+WWW-Authenticate: Bearer
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 0
+X-Frame-Options: DENY
+Content-Type: application/problem+json;charset=UTF-8
+Content-Length: 94
+Date: Fri, 20 Nov 2026 14:40:46 GMT
+
+{"detail":"Authentication required","status":401,"title":"Unauthorized","code":"UNAUTHORIZED"}warning: in the working copy of 'docs/архитектура/identity-service/требования.md', LF will be replaced by CRLF the next time Git touches it
+bootJar test code exclusion: PASS
+

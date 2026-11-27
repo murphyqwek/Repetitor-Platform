@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="tutor.educationservice.EducationInfrastructureTest" tests="1" skipped="0" failures="1" errors="0" timestamp="2026-11-20T14:16:34.883Z" hostname="DESKTOP-LIV018F" time="42.706">
+  <properties/>
+  <testcase name="initializationError" classname="tutor.educationservice.EducationInfrastructureTest" time="0.001">
+    <failure message="org.testcontainers.containers.ContainerFetchException: Can't get Docker image: RemoteDockerImage(imageName=quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z, imagePullPolicy=DefaultPullPolicy(), imageNameSubstitutor=org.testcontainers.utility.ImageNameSubstitutor$LogWrappedImageNameSubstitutor@53ed80d3)" type="org.testcontainers.containers.ContainerFetchException">org.testcontainers.containers.ContainerFetchException: Can't get Docker image: RemoteDockerImage(imageName=quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z, imagePullPolicy=DefaultPullPolicy(), imageNameSubstitutor=org.testcontainers.utility.ImageNameSubstitutor$LogWrappedImageNameSubstitutor@53ed80d3)
+	at org.testcontainers.containers.GenericContainer.getDockerImageName(GenericContainer.java:1308)
+	at org.testcontainers.containers.GenericContainer.doStart(GenericContainer.java:346)
+	at org.testcontainers.containers.GenericContainer.start(GenericContainer.java:317)
+	at org.testcontainers.junit.jupiter.TestcontainersExtension$StoreAdapter.start(TestcontainersExtension.java:276)
+	at org.testcontainers.junit.jupiter.TestcontainersExtension$StoreAdapter.access$200(TestcontainersExtension.java:263)
+	at org.testcontainers.junit.jupiter.TestcontainersExtension.lambda$startContainers$4(TestcontainersExtension.java:83)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at org.testcontainers.junit.jupiter.TestcontainersExtension.lambda$startContainers$5(TestcontainersExtension.java:83)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+	at org.testcontainers.junit.jupiter.TestcontainersExtension.startContainers(TestcontainersExtension.java:83)
+	at org.testcontainers.junit.jupiter.TestcontainersExtension.beforeAll(TestcontainersExtension.java:57)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1511)
+Caused by: org.testcontainers.shaded.org.awaitility.core.ConditionTimeoutException: Condition with Lambda expression in org.testcontainers.images.RemoteDockerImage was not fulfilled within 20 seconds.
+	at org.testcontainers.shaded.org.awaitility.core.ConditionAwaiter.await(ConditionAwaiter.java:167)
+	at org.testcontainers.shaded.org.awaitility.core.CallableCondition.await(CallableCondition.java:78)
+	at org.testcontainers.shaded.org.awaitility.core.CallableCondition.await(CallableCondition.java:26)
+	at org.testcontainers.shaded.org.awaitility.core.ConditionFactory.until(ConditionFactory.java:1160)
+	at org.testcontainers.shaded.org.awaitility.core.ConditionFactory.until(ConditionFactory.java:1129)
+	at org.testcontainers.images.RemoteDockerImage.resolve(RemoteDockerImage.java:109)
+	at org.testcontainers.images.RemoteDockerImage.resolve(RemoteDockerImage.java:35)
+	at org.testcontainers.utility.LazyFuture.getResolvedValue(LazyFuture.java:20)
+	at org.testcontainers.utility.LazyFuture.get(LazyFuture.java:41)
+	at org.testcontainers.containers.GenericContainer.getDockerImageName(GenericContainer.java:1306)
+	... 11 more
+</failure>
+  </testcase>
+  <system-out><![CDATA[14:16:34.947 [Test worker] INFO org.testcontainers.images.PullPolicy -- Image pull policy will be performed by: DefaultPullPolicy()
+14:16:34.952 [Test worker] INFO org.testcontainers.utility.ImageNameSubstitutor -- Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')
+14:16:34.966 [Test worker] INFO org.testcontainers.DockerClientFactory -- Testcontainers version: 2.0.5
+14:16:35.122 [Test worker] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Loaded org.testcontainers.dockerclient.NpipeSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first
+14:16:35.384 [Test worker] INFO org.testcontainers.dockerclient.DockerClientProviderStrategy -- Found Docker environment with local Npipe socket (npipe:////./pipe/docker_engine)
+14:16:35.385 [Test worker] INFO org.testcontainers.DockerClientFactory -- Docker host IP address is localhost
+14:16:35.400 [Test worker] INFO org.testcontainers.DockerClientFactory -- Connected to docker: 
+  Server Version: 28.5.2
+  API Version: 1.51
+  Operating System: Docker Desktop (containerized)
+  Total Memory: 15546 MB
+  Labels: 
+    com.docker.desktop.address=npipe://\\.\pipe\docker_cli
+14:16:35.549 [Test worker] INFO tc.testcontainers/ryuk:0.14.0 -- Creating container for image: testcontainers/ryuk:0.14.0
+14:16:35.756 [Test worker] INFO tc.testcontainers/ryuk:0.14.0 -- Container testcontainers/ryuk:0.14.0 is starting: bc85a1201404e6e2d78924f5b7e965f514f8903af47a2f0a4c7d4afdeeb1d6e1
+14:16:36.081 [Test worker] INFO tc.testcontainers/ryuk:0.14.0 -- Container testcontainers/ryuk:0.14.0 started in PT0.5320015S
+14:16:36.085 [Test worker] INFO org.testcontainers.utility.RyukResourceReaper -- Ryuk started - will monitor and terminate Testcontainers containers on JVM exit
+14:16:36.085 [Test worker] INFO org.testcontainers.DockerClientFactory -- Checking the system...
+14:16:36.085 [Test worker] INFO org.testcontainers.DockerClientFactory -- ?? Docker server version should be at least 1.6.0
+14:16:36.096 [Test worker] INFO tc.quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z -- Pulling docker image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z. Please be patient; this may take some time but only needs to be done once.
+14:16:36.146 [Test worker] INFO org.testcontainers.utility.RegistryAuthLocator -- Credential helper/store (docker-credential-desktop) does not have credentials for quay.io
+14:16:37.303 [docker-java-stream-458792121] ERROR com.github.dockerjava.api.async.ResultCallbackTemplate -- Error during callback
+com.github.dockerjava.api.exception.InternalServerErrorException: Status 500: {"message":"unknown: failed to resolve reference \"quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z\": unexpected status from HEAD request to https://quay.io/v2/minio/minio/manifests/RELEASE.2025-09-07T16-13-09Z: 401 UNAUTHORIZED"}
+
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.execute(DefaultInvocationBuilder.java:247)
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.lambda$executeAndStream$1(DefaultInvocationBuilder.java:269)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+14:16:37.304 [Test worker] WARN tc.quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z -- Retrying pull for image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z (18s remaining)
+14:16:38.534 [docker-java-stream-458792121] ERROR com.github.dockerjava.api.async.ResultCallbackTemplate -- Error during callback
+com.github.dockerjava.api.exception.InternalServerErrorException: Status 500: {"message":"unknown: failed to resolve reference \"quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z\": unexpected status from HEAD request to https://quay.io/v2/minio/minio/manifests/RELEASE.2025-09-07T16-13-09Z: 401 UNAUTHORIZED"}
+
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.execute(DefaultInvocationBuilder.java:247)
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.lambda$executeAndStream$1(DefaultInvocationBuilder.java:269)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+14:16:38.534 [Test worker] WARN tc.quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z -- Retrying pull for image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z (17s remaining)
+14:16:39.912 [docker-java-stream-458792121] ERROR com.github.dockerjava.api.async.ResultCallbackTemplate -- Error during callback
+com.github.dockerjava.api.exception.InternalServerErrorException: Status 500: {"message":"unknown: failed to resolve reference \"quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z\": unexpected status from HEAD request to https://quay.io/v2/minio/minio/manifests/RELEASE.2025-09-07T16-13-09Z: 401 UNAUTHORIZED"}
+
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.execute(DefaultInvocationBuilder.java:247)
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.lambda$executeAndStream$1(DefaultInvocationBuilder.java:269)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+14:16:39.912 [Test worker] WARN tc.quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z -- Retrying pull for image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z (16s remaining)
+14:16:41.424 [docker-java-stream-458792121] ERROR com.github.dockerjava.api.async.ResultCallbackTemplate -- Error during callback
+com.github.dockerjava.api.exception.InternalServerErrorException: Status 500: {"message":"unknown: failed to resolve reference \"quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z\": unexpected status from HEAD request to https://quay.io/v2/minio/minio/manifests/RELEASE.2025-09-07T16-13-09Z: 401 UNAUTHORIZED"}
+
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.execute(DefaultInvocationBuilder.java:247)
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.lambda$executeAndStream$1(DefaultInvocationBuilder.java:269)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+14:16:41.424 [Test worker] WARN tc.quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z -- Retrying pull for image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z (14s remaining)
+14:16:43.361 [docker-java-stream-458792121] ERROR com.github.dockerjava.api.async.ResultCallbackTemplate -- Error during callback
+com.github.dockerjava.api.exception.InternalServerErrorException: Status 500: {"message":"unknown: failed to resolve reference \"quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z\": unexpected status from HEAD request to https://quay.io/v2/minio/minio/manifests/RELEASE.2025-09-07T16-13-09Z: 401 UNAUTHORIZED"}
+
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.execute(DefaultInvocationBuilder.java:247)
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.lambda$executeAndStream$1(DefaultInvocationBuilder.java:269)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+14:16:43.365 [Test worker] WARN tc.quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z -- Retrying pull for image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z (12s remaining)
+14:16:46.091 [docker-java-stream-458792121] ERROR com.github.dockerjava.api.async.ResultCallbackTemplate -- Error during callback
+com.github.dockerjava.api.exception.InternalServerErrorException: Status 500: {"message":"unknown: failed to resolve reference \"quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z\": unexpected status from HEAD request to https://quay.io/v2/minio/minio/manifests/RELEASE.2025-09-07T16-13-09Z: 401 UNAUTHORIZED"}
+
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.execute(DefaultInvocationBuilder.java:247)
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.lambda$executeAndStream$1(DefaultInvocationBuilder.java:269)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+14:16:46.091 [Test worker] WARN tc.quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z -- Retrying pull for image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z (10s remaining)
+14:16:50.426 [docker-java-stream-458792121] ERROR com.github.dockerjava.api.async.ResultCallbackTemplate -- Error during callback
+com.github.dockerjava.api.exception.InternalServerErrorException: Status 500: {"message":"unknown: failed to resolve reference \"quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z\": unexpected status from HEAD request to https://quay.io/v2/minio/minio/manifests/RELEASE.2025-09-07T16-13-09Z: 401 UNAUTHORIZED"}
+
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.execute(DefaultInvocationBuilder.java:247)
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.lambda$executeAndStream$1(DefaultInvocationBuilder.java:269)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+14:16:50.426 [Test worker] WARN tc.quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z -- Retrying pull for image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z (5s remaining)
+14:16:56.840 [Test worker] INFO tc.quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z -- Pulling docker image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z. Please be patient; this may take some time but only needs to be done once.
+14:16:57.958 [docker-java-stream-458792121] ERROR com.github.dockerjava.api.async.ResultCallbackTemplate -- Error during callback
+com.github.dockerjava.api.exception.InternalServerErrorException: Status 500: {"message":"unknown: failed to resolve reference \"quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z\": unexpected status from HEAD request to https://quay.io/v2/minio/minio/manifests/RELEASE.2025-09-07T16-13-09Z: 401 UNAUTHORIZED"}
+
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.execute(DefaultInvocationBuilder.java:247)
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.lambda$executeAndStream$1(DefaultInvocationBuilder.java:269)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+14:16:57.958 [Test worker] WARN tc.quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z -- Retrying pull for image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z (18s remaining)
+14:16:59.158 [docker-java-stream-458792121] ERROR com.github.dockerjava.api.async.ResultCallbackTemplate -- Error during callback
+com.github.dockerjava.api.exception.InternalServerErrorException: Status 500: {"message":"unknown: failed to resolve reference \"quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z\": unexpected status from HEAD request to https://quay.io/v2/minio/minio/manifests/RELEASE.2025-09-07T16-13-09Z: 401 UNAUTHORIZED"}
+
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.execute(DefaultInvocationBuilder.java:247)
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.lambda$executeAndStream$1(DefaultInvocationBuilder.java:269)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+14:16:59.158 [Test worker] WARN tc.quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z -- Retrying pull for image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z (17s remaining)
+14:17:00.502 [docker-java-stream-458792121] ERROR com.github.dockerjava.api.async.ResultCallbackTemplate -- Error during callback
+com.github.dockerjava.api.exception.InternalServerErrorException: Status 500: {"message":"unknown: failed to resolve reference \"quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z\": unexpected status from HEAD request to https://quay.io/v2/minio/minio/manifests/RELEASE.2025-09-07T16-13-09Z: 401 UNAUTHORIZED"}
+
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.execute(DefaultInvocationBuilder.java:247)
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.lambda$executeAndStream$1(DefaultInvocationBuilder.java:269)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+14:17:00.503 [Test worker] WARN tc.quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z -- Retrying pull for image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z (16s remaining)
+14:17:01.993 [docker-java-stream-458792121] ERROR com.github.dockerjava.api.async.ResultCallbackTemplate -- Error during callback
+com.github.dockerjava.api.exception.InternalServerErrorException: Status 500: {"message":"unknown: failed to resolve reference \"quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z\": unexpected status from HEAD request to https://quay.io/v2/minio/minio/manifests/RELEASE.2025-09-07T16-13-09Z: 401 UNAUTHORIZED"}
+
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.execute(DefaultInvocationBuilder.java:247)
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.lambda$executeAndStream$1(DefaultInvocationBuilder.java:269)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+14:17:01.993 [Test worker] WARN tc.quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z -- Retrying pull for image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z (14s remaining)
+14:17:03.915 [docker-java-stream-458792121] ERROR com.github.dockerjava.api.async.ResultCallbackTemplate -- Error during callback
+com.github.dockerjava.api.exception.InternalServerErrorException: Status 500: {"message":"unknown: failed to resolve reference \"quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z\": unexpected status from HEAD request to https://quay.io/v2/minio/minio/manifests/RELEASE.2025-09-07T16-13-09Z: 401 UNAUTHORIZED"}
+
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.execute(DefaultInvocationBuilder.java:247)
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.lambda$executeAndStream$1(DefaultInvocationBuilder.java:269)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+14:17:03.916 [Test worker] WARN tc.quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z -- Retrying pull for image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z (12s remaining)
+14:17:06.642 [docker-java-stream-458792121] ERROR com.github.dockerjava.api.async.ResultCallbackTemplate -- Error during callback
+com.github.dockerjava.api.exception.InternalServerErrorException: Status 500: {"message":"unknown: failed to resolve reference \"quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z\": unexpected status from HEAD request to https://quay.io/v2/minio/minio/manifests/RELEASE.2025-09-07T16-13-09Z: 401 UNAUTHORIZED"}
+
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.execute(DefaultInvocationBuilder.java:247)
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.lambda$executeAndStream$1(DefaultInvocationBuilder.java:269)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+14:17:06.642 [Test worker] WARN tc.quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z -- Retrying pull for image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z (10s remaining)
+14:17:10.959 [docker-java-stream-458792121] ERROR com.github.dockerjava.api.async.ResultCallbackTemplate -- Error during callback
+com.github.dockerjava.api.exception.InternalServerErrorException: Status 500: {"message":"unknown: failed to resolve reference \"quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z\": unexpected status from HEAD request to https://quay.io/v2/minio/minio/manifests/RELEASE.2025-09-07T16-13-09Z: 401 UNAUTHORIZED"}
+
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.execute(DefaultInvocationBuilder.java:247)
+	at org.testcontainers.shaded.com.github.dockerjava.core.DefaultInvocationBuilder.lambda$executeAndStream$1(DefaultInvocationBuilder.java:269)
+	at java.base/java.lang.Thread.run(Thread.java:842)
+14:17:10.959 [Test worker] WARN tc.quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z -- Retrying pull for image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z (5s remaining)
+14:17:17.443 [Test worker] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [tutor.educationservice.EducationInfrastructureTest]: EducationInfrastructureTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+14:17:17.504 [Test worker] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration tutor.educationservice.EducationServiceApplication for test class tutor.educationservice.EducationInfrastructureTest
+14:17:17.567 [Test worker] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [tutor.educationservice.EducationInfrastructureTest]: EducationInfrastructureTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+14:17:17.568 [Test worker] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration tutor.educationservice.EducationServiceApplication for test class tutor.educationservice.EducationInfrastructureTest
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

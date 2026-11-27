@@ -1,0 +1,307 @@
+> Task :compileJava UP-TO-DATE
+> Task :processResources UP-TO-DATE
+> Task :classes UP-TO-DATE
+> Task :resolveMainClassName UP-TO-DATE
+> Task :bootJar UP-TO-DATE
+> Task :compileTestJava
+> Task :processTestResources NO-SOURCE
+> Task :testClasses
+Java HotSpot(TM) 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+
+> Task :test
+
+CourseHttpTest > adminTeacherCanCreateForSelfAndBlockedOwnerDoesNotBecomeAnInventedRestriction() PASSED
+
+CourseHttpTest > renameChangesOnlyTitleAndRejectsImmutableFields() PASSED
+
+CourseHttpTest > deletingCourseRejectsEveryEnrollmentOperation() PASSED
+
+CourseHttpTest > adminCreatesForExistingTeacherAndCanReadAndRenameOtherCourse() PASSED
+
+CourseHttpTest > deletingDuringIdentityLookupPreventsEnrollmentWithoutHoldingSqlLock() PASSED
+
+CourseHttpTest > enrollmentValidatesIdentityWithoutLeavingRows() PASSED
+
+CourseHttpTest > v1UpgradeAppliesV2WithoutLosingExistingData() PASSED
+
+CourseHttpTest > localChatBanKeepsReadAndReenrollmentResetsFlagAndTimestamp() PASSED
+
+CourseHttpTest > paginationUsesPostgresUuidOrderingAndSurvivesDeletedAnchor() PASSED
+
+CourseHttpTest > enrolledCoursePaginationUsesCurrentActiveMemberships() PASSED
+
+CourseHttpTest > blockedMemberRemainsInRosterWithFreshProfileButCannotRead() PASSED
+
+CourseHttpTest > duplicateAndConcurrentEnrollmentProduceExactlyOneRow() PASSED
+
+CourseHttpTest > hiddenMissingAndDeletingCoursesReturn404WithoutDto() PASSED
+
+CourseHttpTest > rosterLimitsAndEnrollmentBodiesAreValidated() PASSED
+
+CourseHttpTest > renameWaitingForDeleteTransitionCannotCommitAfterDeleting() PASSED
+
+CourseHttpTest > duplicateTitlesAreAllowedAndStudentRoleDoesNotCancelTeacherRole() PASSED
+
+CourseHttpTest > v2UpgradePreservesCourseAndCreatesMembershipConstraintsAndDefaults() PASSED
+
+CourseHttpTest > rosterUsesBoundKeysetAndSurvivesRemovedAnchor() PASSED
+
+CourseHttpTest > studentsCannotCreateAndTeachersCannotSupplyOwnerEvenTheirOwn() PASSED
+
+CourseHttpTest > membershipNeverGrantsManagementEvenWithTeacherRole() PASSED
+
+CourseHttpTest > enrollmentGrantsReadAndExclusionRemovesItImmediately() PASSED
+
+CourseHttpTest > teacherCreatesOwnCourseWithoutIdempotencyHeaderAndGetsExactDto() PASSED
+
+CourseHttpTest > listScopesFiltersAndRolesDoNotLeakOtherTeachers() PASSED
+
+CourseHttpTest > invalidAdminTeacherAndDependencyFailureNeverWriteCourse() PASSED
+
+CourseHttpTest > rosterRechecksActiveCourseAfterIdentityLookup() PASSED
+
+CourseHttpTest > titlesAndUnknownCreateFieldsAreValidatedWithoutArbitraryLengthLimit() PASSED
+
+CourseHttpTest > concurrentCreatesWithSameTitleAreSeparateResources() PASSED
+
+CourseHttpTest > schemaHasNoIdentityForeignKeyAndRejectsInvalidStatesAndEmptyTitles() PASSED
+
+CourseHttpTest > requiredScopeUuidLimitAndDefaultPageSizeAreEnforced() PASSED
+
+CourseHttpTest > exclusionAndPermissionsWaitingForDeletingCannotModifyMembership() PASSED
+
+CourseHttpTest > cursorCannotBeReusedByAnotherActorScopeOrOwnerFilter() PASSED
+
+EducationContextTest > unavailableS3LowersReadinessWithoutExposingException() PASSED
+
+EducationContextTest > repeatedMigrationsPreserveExistingData() PASSED
+
+EducationContextTest > contextLoadsAndFlywayInitializesRealPostgresInUtc() PASSED
+
+EducationContextTest > probesArePublicAndOtherPathsAreClosed() PASSED
+
+EducationContextTest > keysetCursorSurvivesDeletedAnchorAndEqualTimestamps() PASSED
+
+EducationInfrastructureTest > contextLoadsAndFlywayRunsOnRealPostgres() PASSED
+
+EducationInfrastructureTest > restartKeepsObjectAndReadinessRecoversAfterOutage() PASSED
+
+EducationInfrastructureTest > badCredentialsAreUnavailableAndDoNotLeakSecretsOrKeys() PASSED
+
+EducationInfrastructureTest > healthIsPublicAndOtherPathsAreClosed() PASSED
+
+EducationInfrastructureTest > unknownLengthUploadUsesMultipart() PASSED
+
+EducationInfrastructureTest > bootstrapCanRunTwice() PASSED
+
+EducationInfrastructureTest > streamsBinaryObjectsWithMetadataAndPrivateAccess() PASSED
+
+EducationLocalProfileTest > unavailableS3LowersReadinessWithoutExposingException() PASSED
+
+EducationLocalProfileTest > repeatedMigrationsPreserveExistingData() PASSED
+
+EducationLocalProfileTest > contextLoadsAndFlywayInitializesRealPostgresInUtc() PASSED
+
+EducationLocalProfileTest > probesArePublicAndOtherPathsAreClosed() PASSED
+
+EducationLocalProfileTest > keysetCursorSurvivesDeletedAnchorAndEqualTimestamps() PASSED
+
+IdentityLookupTest > timeoutAndConnectionFailureAre503RatherThan404() PASSED
+
+IdentityLookupTest > blockedTargetAndNonStudentRemainDistinguishableFromMissingUser() PASSED
+
+IdentityLookupTest > lookupPreservesTarget404AndSeparatesDependencyFailures(int) > [1] upstreamStatus = 401 PASSED
+
+IdentityLookupTest > lookupPreservesTarget404AndSeparatesDependencyFailures(int) > [2] upstreamStatus = 403 PASSED
+
+IdentityLookupTest > lookupPreservesTarget404AndSeparatesDependencyFailures(int) > [3] upstreamStatus = 404 PASSED
+
+IdentityLookupTest > lookupPreservesTarget404AndSeparatesDependencyFailures(int) > [4] upstreamStatus = 429 PASSED
+
+IdentityLookupTest > lookupPreservesTarget404AndSeparatesDependencyFailures(int) > [5] upstreamStatus = 500 PASSED
+
+IdentityLookupTest > lookupPreservesTarget404AndSeparatesDependencyFailures(int) > [6] upstreamStatus = 503 PASSED
+
+IdentityLookupTest > lookupPreservesTarget404AndSeparatesDependencyFailures(int) > [7] upstreamStatus = 302 PASSED
+
+IdentityLookupTest > lookupReturnsStudentNamesAndUsesCallerCookieAndExactUuid() PASSED
+
+IdentityLookupTest > malformedIncompleteAndMismatchedProfilesAre503() PASSED
+
+ScheduleHttpTest > moveChangesOnlyOneLessonAndPreservesItsIdentityAndCreationTime() PASSED
+
+ScheduleHttpTest > v3UpgradePreservesCourseMembershipAndAddsStrictLessonConstraints() PASSED
+
+ScheduleHttpTest > calendarUsesMoscowHalfOpenMonthAndIncludesCrossingLessonsInStartOrder() PASSED
+
+ScheduleHttpTest > missingTimesLocalDatesMalformedUuidAndUnknownFieldsAreRejected() PASSED
+
+ScheduleHttpTest > createMoveAndCancelWaitingForDeletingCannotCommit() PASSED
+
+ScheduleHttpTest > currentStudentCanReadButCannotManageEvenWithTeacherRole() PASSED
+
+ScheduleHttpTest > createReturnsExactSingleDtoAndNormalizesOffsetToUtc() PASSED
+
+ScheduleHttpTest > personalCalendarUnionsOwnedAndCurrentEnrolledCoursesWithoutDuplicates() PASSED
+
+ScheduleHttpTest > cancelPhysicallyDeletesAndCannotBeRestoredOrMoved() PASSED
+
+ScheduleHttpTest > durationBoundsAreExactAndPostgresPrecisionDoesNotChangeResponse() PASSED
+
+ScheduleHttpTest > monthIsRequiredAndStrictForBothCalendars() PASSED
+
+ScheduleHttpTest > lessonIdCannotBeUsedWithAnotherCourse() PASSED
+
+ScheduleHttpTest > deletingCourseIsAbsentAndEveryMutationIsHidden() PASSED
+
+ScheduleHttpTest > adminManagesAnyCourseButPersonalCalendarDoesNotBecomeGlobal() PASSED
+
+ScheduleHttpTest > idempotencyHeaderIsOptionalAndDoesNotChangeCreationSemantics() PASSED
+
+SecurityHttpTest > healthDoesNotDependOnIdentityAvailability() PASSED
+
+SecurityHttpTest > conflictsMissingResourcesUploadsAndUnexpectedErrorsAreSanitized() PASSED
+
+SecurityHttpTest > blockingTakesEffectOnNextRequestWithSameToken() PASSED
+
+SecurityHttpTest > rolesDoNotGrantOwnershipOrAdministratorAccess() PASSED
+
+SecurityHttpTest > multipleRolesAndDisplayNameUseCheckedIdentityProfile() PASSED
+
+SecurityHttpTest > invalidTokensReturn401WithoutCallingIdentity(String) > [1] scenario = "issuer" PASSED
+
+SecurityHttpTest > invalidTokensReturn401WithoutCallingIdentity(String) > [2] scenario = "expired" PASSED
+
+SecurityHttpTest > invalidTokensReturn401WithoutCallingIdentity(String) > [3] scenario = "signature" PASSED
+
+SecurityHttpTest > invalidTokensReturn401WithoutCallingIdentity(String) > [4] scenario = "futureNbf" PASSED
+
+SecurityHttpTest > invalidTokensReturn401WithoutCallingIdentity(String) > [5] scenario = "futureIat" PASSED
+
+SecurityHttpTest > invalidTokensReturn401WithoutCallingIdentity(String) > [6] scenario = "subject" PASSED
+
+SecurityHttpTest > invalidTokensReturn401WithoutCallingIdentity(String) > [7] scenario = "rolesString" PASSED
+
+SecurityHttpTest > invalidTokensReturn401WithoutCallingIdentity(String) > [8] scenario = "emptyRoles" PASSED
+
+SecurityHttpTest > invalidTokensReturn401WithoutCallingIdentity(String) > [9] scenario = "unknownRole" PASSED
+
+SecurityHttpTest > invalidTokensReturn401WithoutCallingIdentity(String) > [10] scenario = "missingExpiry" PASSED
+
+SecurityHttpTest > invalidTokensReturn401WithoutCallingIdentity(String) > [11] scenario = "unsigned" PASSED
+
+SecurityHttpTest > invalidTokensReturn401WithoutCallingIdentity(String) > [12] scenario = "malformed" PASSED
+
+SecurityHttpTest > missingTokenAndCookieOnlyAreUnauthorizedWithoutIdentityCall() PASSED
+
+SecurityHttpTest > invalidUuidLimitCursorAndJsonHaveSafeProblemResponses() PASSED
+
+SecurityHttpTest > timeoutsAndMalformedOrMismatchedProfilesFailClosed() PASSED
+
+SecurityHttpTest > incompleteProfilesAndParentOnlyRoleCannotAccessEducation() PASSED
+
+SecurityHttpTest > identityCannotAddUnsignedRolesAndRevokedRolesStopWorking() PASSED
+
+SecurityHttpTest > identityHttpFailuresDoNotBecomeUserNotFound(int) > [1] identityStatus = 401 PASSED
+
+SecurityHttpTest > identityHttpFailuresDoNotBecomeUserNotFound(int) > [2] identityStatus = 403 PASSED
+
+SecurityHttpTest > identityHttpFailuresDoNotBecomeUserNotFound(int) > [3] identityStatus = 404 PASSED
+
+SecurityHttpTest > identityHttpFailuresDoNotBecomeUserNotFound(int) > [4] identityStatus = 429 PASSED
+
+SecurityHttpTest > identityHttpFailuresDoNotBecomeUserNotFound(int) > [5] identityStatus = 500 PASSED
+
+SecurityHttpTest > identityHttpFailuresDoNotBecomeUserNotFound(int) > [6] identityStatus = 503 PASSED
+
+SeriesHttpTest > rulesRemainPrivateWhileMembersReadMixedPersonalCalendar() PASSED
+
+SeriesHttpTest > createsIndefiniteRuleWithSortedWeekdaysAndExactDtoWithoutGeneratingRows() PASSED
+
+SeriesHttpTest > futureRuleCanMoveOriginalBackBeforeStartMonth() PASSED
+
+SeriesHttpTest > adminCreatesForCourseAndDeletingHidesEveryRuleOperation() PASSED
+
+SeriesHttpTest > cancelledOccurrenceStaysCancelledAndCannotBeMovedOrRestored() PASSED
+
+SeriesHttpTest > stopIsInclusiveAndOldMovedOccurrenceSurvivesInLaterMonth() PASSED
+
+SeriesHttpTest > crossesYearsAndLeapMonthWithoutPersistingOccurrences() PASSED
+
+SeriesHttpTest > ruleListUsesCommonScopedCursorContractIncludingStoppedRules() PASSED
+
+SeriesHttpTest > validatesWeekdaysDurationsRequiredFieldsAndStrictJson() PASSED
+
+SeriesHttpTest > v4UpgradePreservesExistingDataAndEnforcesArraysAndExceptionsInPostgres() PASSED
+
+SeriesHttpTest > everyMutationWaitingForDeletingCannotCommit() PASSED
+
+SeriesHttpTest > repeatedMoveKeepsStableIdentityAndOneExceptionWithLatestReason() PASSED
+
+SeriesHttpTest > concurrentMovesUpsertOneExceptionAndCancelRaceNeverRestoresIt() PASSED
+
+SeriesHttpTest > stop20DecemberPreserves15MovedTo25ButRemovesLaterOriginals() PASSED
+
+SeriesHttpTest > validatesOccurrenceDateIntervalsAndCourseBinding() PASSED
+
+SeriesHttpTest > movedOccurrenceTravelsBetweenMonthsWithoutOriginalDuplicate() PASSED
+
+CursorCodecTest > roundTripUsesOpaqueUniqueTokensBoundToScope() PASSED
+
+CursorCodecTest > limitsAndConfigurationFailSafely() PASSED
+
+CursorCodecTest > rejectsMalformedTamperedExpiredAndWrongKeyTokens() PASSED
+
+StorageUnitTest > keysAreUniqueAndHaveSeparatePrefixes() PASSED
+
+StorageUnitTest > rejectsMissingSecretsAtContextStartupWithoutLeakingOtherCredentials() PASSED
+
+StorageUnitTest > validatesConfigurationAndRedactsCredentials() PASSED
+
+StorageUnitTest > closesUploadStreamEvenWhenValidationFails() PASSED
+
+StorageUnitTest > validatesSafeMetadataWithoutApplyingChatLimitsToMaterials() PASSED
+
+CalendarTimeTest > monthBoundsUseMoscowIndependentlyOfJvmTimezone() PASSED
+
+RecurringCalendarTest > virtualAndMovedOccurrencesUseMoscowRegardlessOfJvmTimezone() PASSED
+
+2026-11-21T13:16:46.495+03:00  INFO 27268 --- [education-service] [ionShutdownHook] o.s.boot.tomcat.GracefulShutdown         : Commencing graceful shutdown. Waiting for active requests to complete
+2026-11-21T13:16:47.237+03:00  INFO 27268 --- [education-service] [tomcat-shutdown] o.s.boot.tomcat.GracefulShutdown         : Graceful shutdown complete
+2026-11-21T13:16:47.241+03:00  INFO 27268 --- [education-service] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-11-21T13:16:47.242+03:00  INFO 27268 --- [education-service] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-11-21T13:16:47.245+03:00  INFO 27268 --- [education-service] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2026-11-21T13:16:47.253+03:00  INFO 27268 --- [education-service] [ionShutdownHook] o.s.boot.tomcat.GracefulShutdown         : Commencing graceful shutdown. Waiting for active requests to complete
+2026-11-21T13:16:47.930+03:00  INFO 27268 --- [education-service] [tomcat-shutdown] o.s.boot.tomcat.GracefulShutdown         : Graceful shutdown complete
+2026-11-21T13:16:47.932+03:00  INFO 27268 --- [education-service] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-11-21T13:16:47.933+03:00  INFO 27268 --- [education-service] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-2 - Shutdown initiated...
+2026-11-21T13:16:47.934+03:00  INFO 27268 --- [education-service] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-2 - Shutdown completed.
+2026-11-21T13:16:47.936+03:00  INFO 27268 --- [education-service] [ionShutdownHook] o.s.boot.tomcat.GracefulShutdown         : Commencing graceful shutdown. Waiting for active requests to complete
+2026-11-21T13:16:48.616+03:00  INFO 27268 --- [education-service] [tomcat-shutdown] o.s.boot.tomcat.GracefulShutdown         : Graceful shutdown complete
+2026-11-21T13:16:48.618+03:00  INFO 27268 --- [education-service] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-11-21T13:16:48.618+03:00  INFO 27268 --- [education-service] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-3 - Shutdown initiated...
+2026-11-21T13:16:48.619+03:00  INFO 27268 --- [education-service] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-3 - Shutdown completed.
+2026-11-21T13:16:48.622+03:00  INFO 27268 --- [education-service] [ionShutdownHook] o.s.boot.tomcat.GracefulShutdown         : Commencing graceful shutdown. Waiting for active requests to complete
+2026-11-21T13:16:49.309+03:00  INFO 27268 --- [education-service] [tomcat-shutdown] o.s.boot.tomcat.GracefulShutdown         : Graceful shutdown complete
+2026-11-21T13:16:49.311+03:00  INFO 27268 --- [education-service] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-11-21T13:16:49.312+03:00  INFO 27268 --- [education-service] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-4 - Shutdown initiated...
+2026-11-21T13:16:49.313+03:00  INFO 27268 --- [education-service] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-4 - Shutdown completed.
+2026-11-21T13:16:49.316+03:00  INFO 27268 --- [education-service] [ionShutdownHook] o.s.boot.tomcat.GracefulShutdown         : Commencing graceful shutdown. Waiting for active requests to complete
+2026-11-21T13:16:50.013+03:00  INFO 27268 --- [education-service] [tomcat-shutdown] o.s.boot.tomcat.GracefulShutdown         : Graceful shutdown complete
+2026-11-21T13:16:50.015+03:00  INFO 27268 --- [education-service] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-11-21T13:16:50.015+03:00  INFO 27268 --- [education-service] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-5 - Shutdown initiated...
+2026-11-21T13:16:50.016+03:00  INFO 27268 --- [education-service] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-5 - Shutdown completed.
+2026-11-21T13:16:50.020+03:00  INFO 27268 --- [education-service] [ionShutdownHook] o.s.boot.tomcat.GracefulShutdown         : Commencing graceful shutdown. Waiting for active requests to complete
+2026-11-21T13:16:50.707+03:00  INFO 27268 --- [education-service] [tomcat-shutdown] o.s.boot.tomcat.GracefulShutdown         : Graceful shutdown complete
+2026-11-21T13:16:50.708+03:00  INFO 27268 --- [education-service] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-11-21T13:16:50.708+03:00  INFO 27268 --- [education-service] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-6 - Shutdown initiated...
+2026-11-21T13:16:50.709+03:00  INFO 27268 --- [education-service] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-6 - Shutdown completed.
+2026-11-21T13:16:50.713+03:00  INFO 27268 --- [education-service] [ionShutdownHook] o.s.boot.tomcat.GracefulShutdown         : Commencing graceful shutdown. Waiting for active requests to complete
+2026-11-21T13:16:51.396+03:00  INFO 27268 --- [education-service] [tomcat-shutdown] o.s.boot.tomcat.GracefulShutdown         : Graceful shutdown complete
+2026-11-21T13:16:51.398+03:00  INFO 27268 --- [education-service] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-11-21T13:16:51.398+03:00  INFO 27268 --- [education-service] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-7 - Shutdown initiated...
+2026-11-21T13:16:51.399+03:00  INFO 27268 --- [education-service] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-7 - Shutdown completed.
+
+BUILD SUCCESSFUL in 46s
+6 actionable tasks: 2 executed, 4 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.8.2/userguide/configuration_cache_enabling.html

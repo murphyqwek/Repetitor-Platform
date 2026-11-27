@@ -1,1 +1,14 @@
 .env
+**/.env
+**/.gradle/
+**/build/
+**/.idea/
+*.iml
+
+# Local task notes
+/findings.md
+/progress.md
+/task_plan.md
+
+
+.agents

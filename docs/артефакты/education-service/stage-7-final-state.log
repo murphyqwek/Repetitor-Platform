@@ -1,0 +1,9 @@
+postgres=1e8678943675d021c41bf29166b7875724cae829f6d06fa19de753fe8d8e24d7 volume=tutor-platform-local_education_postgres_data
+1|initialize schema
+2|course
+3|course student
+4|single lesson
+5|lesson series and exception
+6|outbox event
+readiness HTTP 200 {"status":"UP"}
+liveness HTTP 200 {"status":"UP"}

@@ -1,0 +1,37 @@
+spring:
+  application:
+    name: identity-service
+
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+      connect-timeout: 2s
+      timeout: 2s
+      lettuce:
+        shutdown-timeout: 2s
+
+identity:
+  invitations:
+    idempotency-ttl: 15m
+  cleanup:
+    expired-codes:
+      cron: "0 0 3 * * *"
+      zone: Europe/Minsk
+  security:
+    student-credentials-key: ${STUDENT_CREDENTIALS_KEY}
+    cookies:
+      secure: true
+    refreshTtl: 7d
+    jwt:
+      public-key-path: ${JWT_PUBLIC_KEY_PATH}
+      private-key-path: ${JWT_PRIVATE_KEY_PATH}
+      issuer: ${JWT_ISSUER:rp-identity}
+      ttl: 15m
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false

@@ -1,0 +1,77 @@
+> Task :compileJava
+> Task :processResources UP-TO-DATE
+> Task :classes
+> Task :compileTestJava UP-TO-DATE
+> Task :processTestResources NO-SOURCE
+> Task :testClasses UP-TO-DATE
+Java HotSpot(TM) 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+
+> Task :test
+
+CourseHttpTest > adminTeacherCanCreateForSelfAndBlockedOwnerDoesNotBecomeAnInventedRestriction() PASSED
+
+CourseHttpTest > renameChangesOnlyTitleAndRejectsImmutableFields() PASSED
+
+CourseHttpTest > deletingCourseRejectsEveryEnrollmentOperation() PASSED
+
+CourseHttpTest > adminCreatesForExistingTeacherAndCanReadAndRenameOtherCourse() PASSED
+
+CourseHttpTest > deletingDuringIdentityLookupPreventsEnrollmentWithoutHoldingSqlLock() PASSED
+
+CourseHttpTest > enrollmentValidatesIdentityWithoutLeavingRows() PASSED
+
+CourseHttpTest > v1UpgradeAppliesV2WithoutLosingExistingData() PASSED
+
+CourseHttpTest > localChatBanKeepsReadAndReenrollmentResetsFlagAndTimestamp() PASSED
+
+CourseHttpTest > paginationUsesPostgresUuidOrderingAndSurvivesDeletedAnchor() PASSED
+
+CourseHttpTest > enrolledCoursePaginationUsesCurrentActiveMemberships() PASSED
+
+CourseHttpTest > blockedMemberRemainsInRosterWithFreshProfileButCannotRead() PASSED
+
+CourseHttpTest > duplicateAndConcurrentEnrollmentProduceExactlyOneRow() PASSED
+
+CourseHttpTest > hiddenMissingAndDeletingCoursesReturn404WithoutDto() PASSED
+
+CourseHttpTest > rosterLimitsAndEnrollmentBodiesAreValidated() PASSED
+
+CourseHttpTest > renameWaitingForDeleteTransitionCannotCommitAfterDeleting() PASSED
+
+CourseHttpTest > duplicateTitlesAreAllowedAndStudentRoleDoesNotCancelTeacherRole() PASSED
+
+CourseHttpTest > v2UpgradePreservesCourseAndCreatesMembershipConstraintsAndDefaults() PASSED
+
+CourseHttpTest > rosterUsesBoundKeysetAndSurvivesRemovedAnchor() PASSED
+
+CourseHttpTest > studentsCannotCreateAndTeachersCannotSupplyOwnerEvenTheirOwn() PASSED
+
+CourseHttpTest > membershipNeverGrantsManagementEvenWithTeacherRole() PASSED
+
+CourseHttpTest > enrollmentGrantsReadAndExclusionRemovesItImmediately() PASSED
+
+CourseHttpTest > teacherCreatesOwnCourseWithoutIdempotencyHeaderAndGetsExactDto() PASSED
+
+CourseHttpTest > listScopesFiltersAndRolesDoNotLeakOtherTeachers() PASSED
+
+CourseHttpTest > invalidAdminTeacherAndDependencyFailureNeverWriteCourse() PASSED
+
+CourseHttpTest > titlesAndUnknownCreateFieldsAreValidatedWithoutArbitraryLengthLimit() PASSED
+
+CourseHttpTest > concurrentCreatesWithSameTitleAreSeparateResources() PASSED
+
+CourseHttpTest > schemaHasNoIdentityForeignKeyAndRejectsInvalidStatesAndEmptyTitles() PASSED
+
+CourseHttpTest > requiredScopeUuidLimitAndDefaultPageSizeAreEnforced() PASSED
+
+CourseHttpTest > cursorCannotBeReusedByAnotherActorScopeOrOwnerFilter() PASSED
+
+2026-11-21T12:52:31.210+03:00  INFO 3456 --- [education-service] [ionShutdownHook] o.s.boot.tomcat.GracefulShutdown         : Commencing graceful shutdown. Waiting for active requests to complete
+2026-11-21T12:52:31.937+03:00  INFO 3456 --- [education-service] [tomcat-shutdown] o.s.boot.tomcat.GracefulShutdown         : Graceful shutdown complete
+2026-11-21T12:52:31.940+03:00  INFO 3456 --- [education-service] [ionShutdownHook] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-11-21T12:52:31.942+03:00  INFO 3456 --- [education-service] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-11-21T12:52:31.943+03:00  INFO 3456 --- [education-service] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+
+BUILD SUCCESSFUL in 16s
+4 actionable tasks: 2 executed, 2 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.8.2/userguide/configuration_cache_enabling.html
