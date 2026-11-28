@@ -1,0 +1,22 @@
+ M Docker/local/minio/bootstrap.sh
+ M services/assignment-service/README.md
+ M services/assignment-service/src/main/java/tutor/assignmentservice/storage/MinioObjectStorage.java
+ M services/assignment-service/src/main/java/tutor/assignmentservice/storage/ObjectStorage.java
+ M services/assignment-service/src/main/java/tutor/assignmentservice/storage/StorageConfiguration.java
+ M services/assignment-service/src/test/java/tutor/assignmentservice/storage/AssignmentInfrastructureTest.java
+ M services/assignment-service/src/test/java/tutor/assignmentservice/storage/StorageTest.java
+ M services/assignment-service/src/test/resources/application-test.yaml
+?? "docs/\320\260\321\200\321\202\320\265\321\204\320\260\320\272\321\202\321\213/assignment-service/stage-4-failures.log"
+?? "docs/\320\260\321\200\321\202\320\265\321\204\320\260\320\272\321\202\321\213/assignment-service/stage-4-files.log"
+?? "docs/\320\260\321\200\321\202\320\265\321\204\320\260\320\272\321\202\321\213/assignment-service/stage-4-startup.log"
+?? "docs/\320\260\321\200\321\202\320\265\321\204\320\260\320\272\321\202\321\213/assignment-service/stage-4-tests.log"
+?? "docs/\320\260\321\200\321\202\320\265\321\204\320\260\320\272\321\202\321\213/assignment-service/stage-4-verification.md"
+?? services/assignment-service/src/main/java/tutor/assignmentservice/storage/FileCleanup.java
+?? services/assignment-service/src/main/java/tutor/assignmentservice/storage/FileMaintenanceScheduler.java
+?? services/assignment-service/src/main/java/tutor/assignmentservice/storage/FileService.java
+?? services/assignment-service/src/main/java/tutor/assignmentservice/storage/ImageController.java
+?? services/assignment-service/src/main/java/tutor/assignmentservice/storage/ImageUpload.java
+?? services/assignment-service/src/main/java/tutor/assignmentservice/storage/MultipartStorageClient.java
+?? services/assignment-service/src/main/java/tutor/assignmentservice/storage/StoredFiles.java
+?? services/assignment-service/src/main/resources/db/migration/V3__temporary_files_and_cleanup.sql
+?? services/assignment-service/src/test/java/tutor/assignmentservice/storage/ImageUploadTest.java

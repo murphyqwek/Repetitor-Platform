@@ -12,22 +12,32 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 class StorageConfiguration {
     @Bean
-    MinioClient minioClient(StorageProperties properties) {
-        var httpClient = new OkHttpClient.Builder()
+    OkHttpClient storageHttpClient() {
+        return new OkHttpClient.Builder()
                 .connectTimeout(Duration.ofSeconds(2))
                 .readTimeout(Duration.ofSeconds(5))
                 .writeTimeout(Duration.ofSeconds(30))
                 .callTimeout(Duration.ofSeconds(60))
                 .retryOnConnectionFailure(false)
                 .build();
-        return MinioClient.builder().endpoint(properties.endpoint().toString())
-                .credentials(properties.accessKey(), properties.secretKey())
-                .httpClient(httpClient).build();
     }
 
     @Bean
-    ObjectStorage objectStorage(MinioClient client, StorageProperties properties) {
-        return new MinioObjectStorage(client, properties.bucket());
+    MinioClient minioClient(StorageProperties properties, OkHttpClient storageHttpClient) {
+        return MinioClient.builder().endpoint(properties.endpoint().toString())
+                .credentials(properties.accessKey(), properties.secretKey())
+                .httpClient(storageHttpClient).build();
+    }
+
+    @Bean
+    MultipartStorageClient storageMaintenanceClient(StorageProperties properties, OkHttpClient storageHttpClient) {
+        return new MultipartStorageClient(io.minio.MinioAsyncClient.builder().endpoint(properties.endpoint().toString())
+                .credentials(properties.accessKey(), properties.secretKey()).httpClient(storageHttpClient).build());
+    }
+
+    @Bean
+    ObjectStorage objectStorage(MinioClient client, MultipartStorageClient maintenance, StorageProperties properties) {
+        return new MinioObjectStorage(client, maintenance, properties.bucket());
     }
 
     @Bean

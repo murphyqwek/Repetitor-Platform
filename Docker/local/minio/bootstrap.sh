@@ -4,6 +4,7 @@ set -eu
 # Never enable shell tracing: commands contain local bootstrap credentials.
 export MC_CONFIG_DIR=/tmp/mc
 service="${1:-education}"
+bucket_actions='"s3:GetBucketLocation","s3:ListBucket"'
 case "$service" in
   education)
     bucket="$EDUCATION_S3_BUCKET"
@@ -12,6 +13,7 @@ case "$service" in
     object_resources="\"arn:aws:s3:::$bucket/materials/*\",\"arn:aws:s3:::$bucket/chat/*\",\"arn:aws:s3:::$bucket/tmp/*\""
     ;;
   assignment)
+    bucket_actions='"s3:GetBucketLocation","s3:ListBucket","s3:ListBucketMultipartUploads"'
     bucket="$ASSIGNMENT_S3_BUCKET"
     access_key="$ASSIGNMENT_S3_ACCESS_KEY"
     secret_key="$ASSIGNMENT_S3_SECRET_KEY"
@@ -52,7 +54,7 @@ mc mb --ignore-existing "local/$bucket" >/dev/null
 mc anonymous set none "local/$bucket" >/dev/null
 cat > "/tmp/$service-policy.json" <<EOF
 {"Version":"2012-10-17","Statement":[
-  {"Effect":"Allow","Action":["s3:GetBucketLocation","s3:ListBucket"],"Resource":["arn:aws:s3:::$bucket"]},
+  {"Effect":"Allow","Action":[$bucket_actions],"Resource":["arn:aws:s3:::$bucket"]},
   {"Effect":"Allow","Action":["s3:GetObject","s3:PutObject","s3:DeleteObject","s3:AbortMultipartUpload","s3:ListMultipartUploadParts"],
    "Resource":[$object_resources]}
 ]}

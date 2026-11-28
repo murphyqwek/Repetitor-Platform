@@ -99,7 +99,7 @@ class AssignmentInfrastructureTest {
             .withStartupCheckStrategy(new org.testcontainers.containers.startupcheck.OneShotStartupCheckStrategy())
             .waitingFor(Wait.forLogMessage(".*restricted S3 user initialized.*", 2));
 
-    @Autowired
+    @org.springframework.test.context.bean.override.mockito.MockitoSpyBean
     private ObjectStorage storage;
 
     @Autowired
@@ -372,7 +372,7 @@ class AssignmentInfrastructureTest {
 
     @Test void migratesV1WithoutLosingDataAndChecksSqlConstraints() {
         assertThat(flyway.migrate().migrationsExecuted).isZero();
-        assertThat(db.queryForObject("select count(*) from information_schema.tables where table_schema='public' and table_name<>'flyway_schema_history'",Integer.class)).isEqualTo(10);
+        assertThat(db.queryForObject("select count(*) from information_schema.tables where table_schema='public' and table_name<>'flyway_schema_history'",Integer.class)).isEqualTo(12);
         var old=org.flywaydb.core.Flyway.configure().dataSource(postgres.getJdbcUrl(),postgres.getUsername(),postgres.getPassword())
                 .schemas("catalog_upgrade").defaultSchema("catalog_upgrade").target("1").load();
         old.migrate();
@@ -380,12 +380,318 @@ class AssignmentInfrastructureTest {
         db.update("insert into catalog_upgrade.preserved values(1)");
         var latest=org.flywaydb.core.Flyway.configure().dataSource(postgres.getJdbcUrl(),postgres.getUsername(),postgres.getPassword())
                 .schemas("catalog_upgrade").defaultSchema("catalog_upgrade").load();
-        assertThat(latest.migrate().migrationsExecuted).isEqualTo(1);
+        assertThat(latest.migrate().migrationsExecuted).isEqualTo(2);
         assertThat(latest.migrate().migrationsExecuted).isZero();
         assertThat(db.queryForObject("select count(*) from catalog_upgrade.preserved",Integer.class)).isEqualTo(1);
         assertThatThrownBy(()->db.update("insert into exam_definition values(?,1,2028,?,now())",UUID.randomUUID(),UUID.randomUUID())).isInstanceOf(org.springframework.dao.DataIntegrityViolationException.class);
         assertThatThrownBy(()->db.update("insert into topic(subject_id,name) values(1,' ')")).isInstanceOf(org.springframework.dao.DataIntegrityViolationException.class);
     }
+
+    @Autowired io.minio.MinioClient imageStorageClient;
+    @Autowired MultipartStorageClient imageMaintenanceClient;
+    @Autowired StoredFiles storedFiles;
+    @Autowired FileService fileService;
+    @Autowired FileCleanup fileCleanup;
+    @Autowired org.springframework.transaction.PlatformTransactionManager transactionManager;
+    private static final byte[] PNG = java.util.Base64.getDecoder().decode(
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aM4sAAAAASUVORK5CYII=");
+
+    private HttpResponse<byte[]> imageHttp(String method, String path, UUID actor, String role, byte[] body, String type) throws Exception {
+        identity.respond(200, user(false, true, role).replace(TestJwt.USER.toString(), actor.toString()));
+        var request = HttpRequest.newBuilder(URI.create(baseUrl() + "/api/v1/tasks/images" + path))
+                .header("Authorization", "Bearer " + TestJwt.token(List.of(role), c -> c.subject(actor.toString()), false))
+                .timeout(java.time.Duration.ofSeconds(15));
+        if (type != null) request.header("Content-Type", type);
+        request.method(method, body == null ? HttpRequest.BodyPublishers.noBody() : HttpRequest.BodyPublishers.ofByteArray(body));
+        return HttpClient.newHttpClient().send(request.build(), HttpResponse.BodyHandlers.ofByteArray());
+    }
+
+    private HttpResponse<byte[]> uploadImage(byte[] bytes, String mime, UUID actor, String role) throws Exception {
+        String boundary = "assignment-test-boundary";
+        var body = new java.io.ByteArrayOutputStream();
+        body.writeBytes(("--" + boundary + "\r\nContent-Disposition: form-data; name=\"file\"; filename=\"image.png\"\r\nContent-Type: "
+                + mime + "\r\n\r\n").getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        body.writeBytes(bytes);
+        body.writeBytes(("\r\n--" + boundary + "--\r\n").getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        return imageHttp("POST", "", actor, role, body.toByteArray(), "multipart/form-data; boundary=" + boundary);
+    }
+
+    @Test
+    void temporaryImagesValidateOwnershipMimeSizeAndStreamExactBytes() throws Exception {
+        UUID owner = UUID.randomUUID();
+        var uploaded = uploadImage(PNG, "image/png", owner, "TEACHER");
+        assertThat(uploaded.statusCode()).as(new String(uploaded.body())).isEqualTo(201);
+        var metadata = json.readTree(uploaded.body());
+        UUID id = UUID.fromString(metadata.path("id").asString());
+        assertThat(metadata.path("state").asString()).isEqualTo("READY");
+        assertThat(metadata.path("markdownReference").asString()).isEqualTo("attachment:" + id);
+        assertThat(metadata.has("objectKey")).isFalse();
+        assertThat(java.time.Instant.parse(metadata.path("expiresAt").asString()))
+                .isAfter(java.time.Instant.now().plus(java.time.Duration.ofHours(23)));
+        assertThat(db.queryForObject("select content_hash from stored_file where id=?", String.class, id))
+                .isEqualTo(java.util.HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256").digest(PNG)));
+        var preview = imageHttp("GET", "/" + id + "/content", owner, "TEACHER", null, null);
+        assertThat(preview.statusCode()).isEqualTo(200);
+        assertThat(preview.body()).isEqualTo(PNG);
+        assertThat(preview.headers().firstValue("X-Content-Type-Options")).contains("nosniff");
+        assertThat(preview.headers().firstValue("Content-Type")).contains("image/png");
+        assertThat(preview.headers().firstValue("Cache-Control").orElseThrow()).contains("no-store","private");
+        assertThat(preview.headers().firstValue("Content-Disposition").orElseThrow()).startsWith("attachment;");
+        assertThat(imageHttp("GET", "/" + id + "/content", UUID.randomUUID(), "TEACHER", null, null).statusCode()).isEqualTo(404);
+        assertThat(imageHttp("GET", "/" + id + "/content", owner, "STUDENT", null, null).statusCode()).isEqualTo(403);
+        assertThat(imageHttp("DELETE", "/" + id, UUID.randomUUID(), "TEACHER", null, null).statusCode()).isEqualTo(404);
+        assertThat(imageHttp("GET", "/" + id + "/content", UUID.randomUUID(), "ADMIN", null, null).statusCode()).isEqualTo(200);
+        int beforeRejected = db.queryForObject("select count(*) from stored_file",Integer.class);
+        assertThat(uploadImage(PNG, "image/jpeg", owner, "TEACHER").statusCode()).isEqualTo(415);
+        assertThat(uploadImage("<svg/>".getBytes(), "image/svg+xml", owner, "TEACHER").statusCode()).isEqualTo(415);
+        assertThat(uploadImage(new byte[10_000_001], "image/png", owner, "TEACHER").statusCode()).isEqualTo(413);
+        assertThat(db.queryForObject("select count(*) from stored_file",Integer.class)).isEqualTo(beforeRejected);
+        byte[] boundary = new byte[10_000_000];
+        System.arraycopy(PNG, 0, boundary, 0, PNG.length);
+        var exact = uploadImage(boundary, "image/png", owner, "TEACHER");
+        assertThat(exact.statusCode()).as(new String(exact.body())).isEqualTo(201);
+        UUID boundaryId = UUID.fromString(json.readTree(exact.body()).path("id").asString());
+        assertThat(imageHttp("DELETE", "/" + boundaryId, owner, "TEACHER", null, null).statusCode()).isEqualTo(204);
+        db.update("update stored_file set state='ATTACHED',expires_at=null where id=?", id);
+        assertThat(imageHttp("DELETE", "/" + id, owner, "TEACHER", null, null).statusCode()).isEqualTo(409);
+        db.update("update stored_file set state='READY',expires_at=now()+interval '1 hour' where id=?", id);
+        assertThat(imageHttp("DELETE", "/" + id, owner, "TEACHER", null, null).statusCode()).isEqualTo(204);
+        UUID cleanupId = db.queryForObject("select id from cleanup_job where resource_id=?", UUID.class, id);
+        assertThat(imageHttp("DELETE", "/" + id, owner, "TEACHER", null, null).statusCode()).isEqualTo(204);
+        assertThat(db.queryForObject("select id from cleanup_job where resource_id=?", UUID.class, id)).isEqualTo(cleanupId);
+        assertThat(imageHttp("GET", "/" + id + "/content", owner, "TEACHER", null, null).statusCode()).isEqualTo(404);
+        fileCleanup.runOnce();
+        assertThat(db.queryForObject("select count(*) from stored_file where id=?", Integer.class, id)).isZero();
+    }
+
+    @Test
+    void ttlCleanupRetriesStorageFailureAndExpiredLeasesWithoutIdentity() throws Exception {
+        var actor = new CurrentUser(UUID.randomUUID(), Set.of(tutor.assignmentservice.security.Role.TEACHER), "Owner");
+        var result = fileService.upload(new org.springframework.mock.web.MockMultipartFile("file","ttl.png","image/png",PNG),actor);
+        String key = db.queryForObject("select object_key from stored_file where id=?", String.class, result.id());
+        db.update("update stored_file set expires_at=timestamp '2020-01-01' where id=?", result.id());
+        assertThatThrownBy(() -> storedFiles.preview(result.id(), actor)).isInstanceOf(ApiException.class);
+        org.mockito.Mockito.doThrow(new StorageException(StorageException.Reason.UNAVAILABLE)).doCallRealMethod().when(storage).delete(key);
+        identity.respond(503,"{}");
+        fileCleanup.runOnce();
+        UUID job = db.queryForObject("select id from cleanup_job where resource_id=?", UUID.class, result.id());
+        assertThat(db.queryForObject("select status from cleanup_job where id=?", String.class, job)).isEqualTo("PENDING");
+        assertThat(db.queryForObject("select state from stored_file where id=?", String.class, result.id())).isEqualTo("DELETING");
+        assertThat(db.queryForObject("select last_error from cleanup_job where id=?", String.class, job)).isEqualTo("STORAGE_UNAVAILABLE");
+        db.update("update cleanup_job set status='PROCESSING',lease_token=?,locked_until=timestamp '2020-01-01' where id=?", UUID.randomUUID(), job);
+        fileCleanup.runOnce();
+        assertThat(db.queryForObject("select status from cleanup_job where id=?", String.class, job)).isEqualTo("COMPLETED");
+        assertThatThrownBy(() -> storage.head(key)).isInstanceOfSatisfying(StorageException.class,
+                ex -> assertThat(ex.reason()).isEqualTo(StorageException.Reason.NOT_FOUND));
+        fileCleanup.runOnce();
+        assertThat(db.queryForObject("select count(*) from cleanup_job where resource_id=?", Integer.class, result.id())).isEqualTo(1);
+    }
+
+    @Test
+    void latePutAfterDeleteCannotBecomeReadyAndReconciliationKeepsDeletionMarker() throws Exception {
+        var actor = new CurrentUser(UUID.randomUUID(), Set.of(tutor.assignmentservice.security.Role.TEACHER), "Owner");
+        var entered = new java.util.concurrent.CountDownLatch(1);
+        var release = new java.util.concurrent.CountDownLatch(1);
+        var delayed = org.mockito.Mockito.spy(new MinioObjectStorage(imageStorageClient, imageMaintenanceClient, BUCKET));
+        var key = new java.util.concurrent.atomic.AtomicReference<String>();
+        org.mockito.Mockito.doAnswer(invocation -> {
+            assertThat(org.springframework.transaction.support.TransactionSynchronizationManager.isActualTransactionActive()).isFalse();
+            key.set(invocation.getArgument(0));
+            entered.countDown();
+            assertThat(release.await(15,java.util.concurrent.TimeUnit.SECONDS)).isTrue();
+            return invocation.callRealMethod();
+        }).when(delayed).put(org.mockito.ArgumentMatchers.anyString(),org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.anyLong(),org.mockito.ArgumentMatchers.anyString());
+        var service = new FileService(storedFiles, delayed);
+        var executor = java.util.concurrent.Executors.newSingleThreadExecutor();
+        try {
+            var pending = executor.submit(() -> service.upload(new org.springframework.mock.web.MockMultipartFile("file","late.png","image/png",PNG),actor));
+            assertThat(entered.await(10,java.util.concurrent.TimeUnit.SECONDS)).isTrue();
+            UUID id = db.queryForObject("select id from stored_file where object_key=?", UUID.class, key.get());
+            UUID job = storedFiles.delete(id,actor);
+            fileCleanup.runOnce();
+            assertThat(db.queryForObject("select state from stored_file where id=?", String.class, id)).isEqualTo("DELETING");
+            release.countDown();
+            assertThatThrownBy(() -> pending.get(15,java.util.concurrent.TimeUnit.SECONDS)).hasCauseInstanceOf(ApiException.class);
+            assertThat(storage.head(key.get()).size()).isEqualTo(PNG.length);
+            assertThatThrownBy(() -> storedFiles.preview(id,actor)).isInstanceOf(ApiException.class);
+            db.update("update cleanup_job set next_attempt_at=now() where id=?",job);
+            fileCleanup.runOnce();
+            assertThat(db.queryForObject("select status from cleanup_job where id=?",String.class,job)).isEqualTo("COMPLETED");
+            assertThat(db.queryForObject("select count(*) from stored_file where id=?",Integer.class,id)).isZero();
+            storage.put(key.get(),new ByteArrayInputStream(PNG),PNG.length,"image/png");
+            fileCleanup.reconcileOnce();
+            fileCleanup.runOnce();
+            assertThat(db.queryForObject("select id from cleanup_job where object_key=?",UUID.class,key.get())).isEqualTo(job);
+            assertThatThrownBy(() -> storage.head(key.get())).isInstanceOf(StorageException.class);
+        } finally {
+            release.countDown();
+            executor.shutdownNow();
+        }
+    }
+
+    @Test
+    void uncertainUploadRemainsFencedAndOrphanMultipartIsAborted() throws Exception {
+        var actor = new CurrentUser(UUID.randomUUID(), Set.of(tutor.assignmentservice.security.Role.TEACHER), "Owner");
+        var failed = org.mockito.Mockito.spy(new MinioObjectStorage(imageStorageClient, imageMaintenanceClient, BUCKET));
+        String name = "unknown-" + UUID.randomUUID()+".png";
+        org.mockito.Mockito.doAnswer(invocation -> {
+            invocation.callRealMethod();
+            throw new StorageException(StorageException.Reason.UNAVAILABLE);
+        }).when(failed).put(org.mockito.ArgumentMatchers.anyString(),org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.anyLong(),org.mockito.ArgumentMatchers.anyString());
+        assertThatThrownBy(() -> new FileService(storedFiles,failed).upload(
+                new org.springframework.mock.web.MockMultipartFile("file",name,"image/png",PNG),actor))
+                .isInstanceOf(StorageException.class);
+        UUID id = db.queryForObject("select id from stored_file where original_name=?",UUID.class,name);
+        String key = db.queryForObject("select object_key from stored_file where id=?",String.class,id);
+        UUID token = db.queryForObject("select upload_lease_token from stored_file where id=?",UUID.class,id);
+        fileCleanup.runOnce();
+        assertThat(db.queryForObject("select state from stored_file where id=?",String.class,id)).isEqualTo("DELETING");
+        storage.put(key,new ByteArrayInputStream(PNG),PNG.length,"image/png");
+        db.update("update cleanup_job set next_attempt_at=now() where resource_id=?",id);
+        fileCleanup.runOnce();
+        assertThatThrownBy(()->storage.head(key)).isInstanceOf(StorageException.class);
+        storedFiles.acknowledgeUpload(id,token);
+        db.update("update cleanup_job set next_attempt_at=now() where resource_id=?",id);
+        fileCleanup.runOnce();
+        try (var client = io.minio.MinioAsyncClient.builder().endpoint(s3Endpoint()).credentials(ACCESS,SECRET).build()) {
+            var reserved = storedFiles.begin(actor,"multipart.png","image/png",PNG.length);
+            String orphan = reserved.key();
+            var upload = client.createMultipartUploadAsync(BUCKET,null,orphan,null,null).get();
+            String uploadId = upload.result().uploadId();
+            client.uploadPartAsync(BUCKET,null,orphan,PNG,PNG.length,uploadId,1,null,null).get();
+            assertThat(storage.listMultipart(orphan,null,null,100).uploads()).contains(new ObjectStorage.Multipart(orphan,uploadId));
+            storedFiles.delete(reserved.id(),actor);
+            fileCleanup.runOnce();
+            assertThat(storage.listMultipart(orphan,null,null,100).uploads()).doesNotContain(new ObjectStorage.Multipart(orphan,uploadId));
+            storedFiles.acknowledgeUpload(reserved.id(),reserved.uploadToken());
+            db.update("update cleanup_job set next_attempt_at=now() where resource_id=?",reserved.id());
+            fileCleanup.runOnce();
+        }
+    }
+
+    @Test
+    void storageDownloadOutageUsesProblem503() throws Exception {
+        UUID owner=UUID.randomUUID();
+        var response=uploadImage(PNG,"image/png",owner,"TEACHER");
+        UUID id=UUID.fromString(json.readTree(response.body()).path("id").asString());
+        String key=db.queryForObject("select object_key from stored_file where id=?",String.class,id);
+        org.mockito.Mockito.doThrow(new StorageException(StorageException.Reason.UNAVAILABLE)).when(storage).get(key);
+        var failed=imageHttp("GET","/"+id+"/content",owner,"TEACHER",null,null);
+        assertThat(failed.statusCode()).as(new String(failed.body())).isEqualTo(503);
+        assertThat(new String(failed.body())).contains("STORAGE_UNAVAILABLE").doesNotContain(key);
+        org.mockito.Mockito.doCallRealMethod().when(storage).get(key);
+        imageHttp("DELETE","/"+id,owner,"TEACHER",null,null);
+        fileCleanup.runOnce();
+    }
+
+
+    @Test
+    void abandonedUploadLeaseAndStaleCleanupTokenCannotPublishOrFinalize() throws Exception {
+        var actor = new CurrentUser(UUID.randomUUID(), Set.of(tutor.assignmentservice.security.Role.TEACHER), "Owner");
+        var abandoned = storedFiles.begin(actor,"abandoned.png","image/png",PNG.length);
+        db.update("update stored_file set upload_locked_until=timestamp '2020-01-01' where id=?",abandoned.id());
+        fileCleanup.runOnce();
+        assertThat(db.queryForObject("select state from stored_file where id=?",String.class,abandoned.id())).isEqualTo("DELETING");
+        storage.put(abandoned.key(),new ByteArrayInputStream(PNG),PNG.length,"image/png");
+        assertThatThrownBy(()->storedFiles.ready(abandoned.id(),abandoned.uploadToken(),"0".repeat(64))).isInstanceOf(ApiException.class);
+        db.update("update cleanup_job set next_attempt_at=now() where resource_id=?",abandoned.id());
+        fileCleanup.runOnce();
+        assertThatThrownBy(()->storage.head(abandoned.key())).isInstanceOf(StorageException.class);
+        storedFiles.acknowledgeUpload(abandoned.id(),abandoned.uploadToken());
+        db.update("update cleanup_job set next_attempt_at=now() where resource_id=?",abandoned.id());
+        fileCleanup.runOnce();
+
+        var ready = fileService.upload(new org.springframework.mock.web.MockMultipartFile("file","stale.png","image/png",PNG),actor);
+        UUID jobId = storedFiles.delete(ready.id(),actor);
+        var first = storedFiles.claim();
+        assertThat(first.id()).isEqualTo(jobId);
+        db.update("update cleanup_job set locked_until=timestamp '2020-01-01' where id=?",jobId);
+        var second = storedFiles.claim();
+        assertThat(second.id()).isEqualTo(jobId);
+        assertThat(second.token()).isNotEqualTo(first.token());
+        storedFiles.complete(first);
+        assertThat(db.queryForObject("select state from stored_file where id=?",String.class,ready.id())).isEqualTo("DELETING");
+        storage.delete(second.key());
+        storedFiles.complete(second);
+        assertThat(db.queryForObject("select status from cleanup_job where id=?",String.class,jobId)).isEqualTo("COMPLETED");
+    }
+
+    @Test
+    void reconciliationIsPagedAndPreservesAnActiveUploadAndReadyImage() throws Exception {
+        var actor = new CurrentUser(UUID.randomUUID(), Set.of(tutor.assignmentservice.security.Role.TEACHER), "Owner");
+        var ready = fileService.upload(new org.springframework.mock.web.MockMultipartFile("file","protected.png","image/png",PNG),actor);
+        String readyKey=db.queryForObject("select object_key from stored_file where id=?",String.class,ready.id());
+        var orphans=new java.util.HashSet<String>();
+        for(int i=0;i<3;i++) {
+            String key=ObjectStorage.newKey();
+            storage.put(key,new ByteArrayInputStream(PNG),PNG.length,"image/png");
+            orphans.add(key);
+        }
+        var all=new java.util.HashSet<String>();
+        String after=null;
+        do {
+            var page=storage.list(after,2);
+            assertThat(page.keys().size()).isLessThanOrEqualTo(2);
+            all.addAll(page.keys());
+            after=page.nextAfter();
+        } while(after!=null);
+        assertThat(all).containsAll(orphans).contains(readyKey);
+        var uploading=storedFiles.begin(actor,"active.png","image/png",PNG.length);
+        try(var client=io.minio.MinioAsyncClient.builder().endpoint(s3Endpoint()).credentials(ACCESS,SECRET).build()) {
+            String uploadId=client.createMultipartUploadAsync(BUCKET,null,uploading.key(),null,null).get().result().uploadId();
+            client.uploadPartAsync(BUCKET,null,uploading.key(),PNG,PNG.length,uploadId,1,null,null).get();
+            fileCleanup.reconcileOnce();
+            assertThat(storage.listMultipart(uploading.key(),null,null,100).uploads()).contains(new ObjectStorage.Multipart(uploading.key(),uploadId));
+            fileCleanup.runOnce();
+            assertThat(storage.head(readyKey).size()).isEqualTo(PNG.length);
+            for(String key:orphans) assertThatThrownBy(()->storage.head(key)).isInstanceOf(StorageException.class);
+            storedFiles.delete(uploading.id(),actor);
+            fileCleanup.runOnce();
+            assertThat(storage.listMultipart(uploading.key(),null,null,100).uploads()).doesNotContain(new ObjectStorage.Multipart(uploading.key(),uploadId));
+            storedFiles.acknowledgeUpload(uploading.id(),uploading.uploadToken());
+            db.update("update cleanup_job set next_attempt_at=now() where resource_id=?",uploading.id());
+        }
+        storedFiles.delete(ready.id(),actor);
+        fileCleanup.runOnce();
+    }
+
+
+    @Test
+    void stage4UpgradePreservesV2CatalogAndCreatesFileConstraints() {
+        var old=org.flywaydb.core.Flyway.configure().dataSource(postgres.getJdbcUrl(),postgres.getUsername(),postgres.getPassword())
+                .schemas("files_upgrade").defaultSchema("files_upgrade").target("2").load();
+        old.migrate();
+        db.update("insert into files_upgrade.topic(subject_id,name) values(1,'Preserved topic')");
+        var current=org.flywaydb.core.Flyway.configure().dataSource(postgres.getJdbcUrl(),postgres.getUsername(),postgres.getPassword())
+                .schemas("files_upgrade").defaultSchema("files_upgrade").load();
+        assertThat(current.migrate().migrationsExecuted).isEqualTo(1);
+        assertThat(current.migrate().migrationsExecuted).isZero();
+        assertThat(db.queryForObject("select count(*) from files_upgrade.topic where name='Preserved topic'",Integer.class)).isEqualTo(1);
+        assertThatThrownBy(()->db.update("""
+                insert into stored_file(id,object_key,original_name,mime_type,size_bytes,purpose,state,created_at,expires_at,updated_at)
+                values(?,?,'bad.png','image/png',-1,'TASK_IMAGE','READY',now(),now(),now())
+                """,UUID.randomUUID(),ObjectStorage.newKey())).isInstanceOf(org.springframework.dao.DataIntegrityViolationException.class);
+    }
+
+
+    @Test
+    void temporaryImageExpiresExactlyAt24HoursUsingInjectedClock() {
+        var start = java.time.Instant.parse("2026-01-01T12:00:00Z");
+        var initial = new StoredFiles(db,transactionManager,java.time.Clock.fixed(start,java.time.ZoneOffset.UTC));
+        var actor = new CurrentUser(UUID.randomUUID(), Set.of(tutor.assignmentservice.security.Role.TEACHER), "Owner");
+        var image = new FileService(initial,storage).upload(
+                new org.springframework.mock.web.MockMultipartFile("file","boundary.png","image/png",PNG),actor);
+        assertThat(image.expiresAt()).isEqualTo(start.plus(java.time.Duration.ofHours(24)));
+        var before = new StoredFiles(db,transactionManager,java.time.Clock.fixed(image.expiresAt().minusNanos(1),java.time.ZoneOffset.UTC));
+        assertThat(before.preview(image.id(),actor).id()).isEqualTo(image.id());
+        var expired = new StoredFiles(db,transactionManager,java.time.Clock.fixed(image.expiresAt(),java.time.ZoneOffset.UTC));
+        assertThatThrownBy(()->expired.preview(image.id(),actor)).isInstanceOf(ApiException.class);
+        new FileCleanup(expired,storage).runOnce();
+        assertThat(db.queryForObject("select count(*) from stored_file where id=?",Integer.class,image.id())).isZero();
+    }
+
     private String baseUrl() {
         return "http://127.0.0.1:" + port;
     }

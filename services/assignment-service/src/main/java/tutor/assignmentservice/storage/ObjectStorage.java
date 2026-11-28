@@ -19,5 +19,15 @@ public interface ObjectStorage {
 
     void delete(String key);
 
+
+    // Each scan returns at most limit entries from the private files/ namespace.
+    ObjectPage list(String after, int limit);
+    MultipartPage listMultipart(String key, String keyMarker, String uploadMarker, int limit);
+    void abortMultipart(String key, String uploadId);
+
+    record ObjectPage(java.util.List<String> keys, String nextAfter) {}
+    record Multipart(String key, String uploadId) {}
+    record MultipartPage(java.util.List<Multipart> uploads, String nextKey, String nextUpload) {}
+
     record Metadata(long size, String contentType) {}
 }
