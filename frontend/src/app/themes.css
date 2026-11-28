@@ -1,0 +1,94 @@
+:root[data-theme="blue"] {
+  --page: #f7fbfd;
+  --blush: #e5f1f8;
+  --border: #cfdfe9;
+  --accent: #2e6485;
+  --accent-hover: #24536f;
+  --ink: #26343d;
+  --secondary: #4e6676;
+}
+
+:root[data-theme="orange"] {
+  --page: #fdf9f4;
+  --blush: #f8eadd;
+  --border: #ead5c4;
+  --accent: #934f28;
+  --accent-hover: #7c4121;
+  --ink: #3b3029;
+  --secondary: #6f5747;
+}
+
+:root[data-theme="red"] {
+  --page: #fdf8f7;
+  --blush: #f8e5e2;
+  --border: #ebd0cc;
+  --accent: #983f42;
+  --accent-hover: #813437;
+  --ink: #3d2c2d;
+  --secondary: #735457;
+}
+
+:root[data-theme="green"] {
+  --page: #f7faf7;
+  --blush: #e6f0e7;
+  --border: #cddfd0;
+  --accent: #3b694d;
+  --accent-hover: #30563f;
+  --ink: #2c3830;
+  --secondary: #4e6756;
+}
+
+:root[data-theme]:not([data-theme="pink"]) {
+  --muted: var(--secondary);
+  --theme-soft: color-mix(in srgb, var(--paper) 50%, var(--blush));
+  --theme-tint: var(--blush);
+  --theme-tint-strong: color-mix(in srgb, var(--accent) 14%, var(--blush));
+  --theme-stroke: color-mix(in srgb, var(--accent) 73%, var(--paper));
+  --theme-line: var(--border);
+  --theme-focus: var(--accent);
+  --theme-text: var(--accent-hover);
+  --theme-text-muted: var(--secondary);
+  --theme-cover: var(--accent);
+  --theme-cover-text: var(--paper);
+  --theme-spine: var(--accent-hover);
+  --theme-focus-shadow: color-mix(in srgb, var(--accent) 12%, transparent);
+  --theme-shadow: color-mix(in srgb, var(--ink) 20%, transparent);
+  --theme-backdrop: color-mix(in srgb, var(--ink) 45%, transparent);
+}
+
+.theme-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--secondary);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.theme-picker select {
+  min-height: 32px;
+  padding: 4px 6px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--ink);
+  background: var(--paper);
+  font: inherit;
+}
+
+.theme-picker select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.policy-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 80px;
+}
+
+@media (max-width: 440px) {
+  .auth-navigation { flex-wrap: wrap; }
+}

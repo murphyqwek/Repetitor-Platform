@@ -2,6 +2,15 @@
 .env
 .env.*
 dev_secrets
+.local-docker
+.planning
+**/.env
+**/.env.*
 **/node_modules
+**/.next
 **/.gradle
 **/build
+**/bin
+**/*.tsbuildinfo
+**/*.pem
+**/*.key

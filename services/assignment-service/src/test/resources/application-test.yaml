@@ -1,0 +1,6 @@
+server:
+  port: 0
+assignment:
+  files.cleanup-enabled: false
+  kafka:
+    bootstrap-servers: unused:9092

@@ -1,7 +1,6 @@
 package tutor.identityservice.service;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.event.TransactionPhase;
@@ -14,13 +13,13 @@ import java.util.Objects;
 import java.util.UUID;
 
 @Service
+@Slf4j
 public class InvitationIdempotencyService {
     public enum Operation {
         PARENT_INVITATION,
         TEACHER_REGISTRATION
     }
 
-    private static final Logger log = LoggerFactory.getLogger(InvitationIdempotencyService.class);
     private final StringRedisTemplate redis;
     private final InvitationCreationService creationService;
     private final Clock clock;

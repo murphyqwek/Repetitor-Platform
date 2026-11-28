@@ -1,0 +1,4 @@
+name: tutor-platform-local
+
+include:
+  - Docker/local/compose.yml

@@ -9,15 +9,13 @@ import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import tutor.educationservice.cleanup.CleanupHandler.ResourceType;
 import tutor.educationservice.integration.storage.ObjectStorage;
 
+@Slf4j
 public class CleanupWorker {
-    private static final Logger log = LoggerFactory.getLogger(CleanupWorker.class);
-
     private final CleanupJobs jobs;
     private final ObjectStorage storage;
     private final Map<ResourceType, CleanupHandler> handlers;

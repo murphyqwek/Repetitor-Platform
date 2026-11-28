@@ -1,0 +1,11 @@
+.git
+.gradle
+build
+.idea
+*.iml
+.env
+.env.*
+dev_secrets
+*.pem
+*.key
+src/test
