@@ -1,26 +1,18 @@
 # Assignment Service
 
-Java 17, Spring Boot 4.1.1, Gradle Kotlin DSL. Этапы 1–4 дают локальный стенд, адаптер приватного хранилища, проверку пользователя и внутренние клиенты. Доступны пробы Actuator, REST API справочников, экзаменационных структур и шкал, а также временных изображений задач.
+Java 17, Spring Boot 4.1.1, Gradle Kotlin DSL. Доступны пробы Actuator, REST API справочников, экзаменационных структур и шкал, временных изображений и банка задач.
 
 ## Локальный запуск
 
-Нужны JDK 17, работающий Docker Desktop / Docker Engine с Linux-контейнерами и Compose v2. Все команды PowerShell 7 ниже начинаются в корне репозитория. Для новой установки скопируйте `.env.example` в `.env`. В существующем окружении добавьте недостающие строки, сохраняя значения уже инициализированных БД и MinIO. Compose также использует переменные Education и общей инфраструктуры из корневого примера.
-
-Заполните `ASSIGNMENT_DB_PASSWORD` и `ASSIGNMENT_S3_SECRET_KEY` разными случайными паролями. `ASSIGNMENT_S3_ACCESS_KEY` должен отличаться от пользователей root и Education. Для каждого из `ASSIGNMENT_CURSOR_KEY`, `ASSIGNMENT_IDENTITY_SIGNING_KEY` и `ASSIGNMENT_EDUCATION_SIGNING_KEY` отдельно выполните команду и сохраните результат в локальном хранилище секретов или игнорируемом `.env`:
+Полный стек запускается из корня репозитория командой `pwsh -File ./start-local.ps1`. Скрипт создаёт конфигурацию и ключи для новой установки. Существующие настройки и данные сохраняются. Для запуска из IDE понадобится JDK 17.
 
 ```powershell
-[Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
-```
-
-```powershell
-$c = @('--env-file', '.env', '-f', 'Docker/local/compose.yml', '--profile', 'assignment')
-docker compose @c config --quiet
-docker compose @c up -d --build assignment education
-docker compose @c ps -a assignment assignment-postgres assignment-minio-init minio education
-docker compose @c logs --tail 40 assignment assignment-minio-init
+docker compose config --quiet
+docker compose ps -a assignment assignment-postgres assignment-minio-init minio education
+docker compose logs --tail 40 assignment assignment-minio-init
 Invoke-RestMethod http://127.0.0.1:8082/actuator/health/readiness
 Invoke-RestMethod http://127.0.0.1:8082/actuator/health
-docker compose @c run --rm assignment-minio-init
+docker compose run --rm assignment-minio-init
 ```
 
 Дождитесь статуса `healthy` у приложения. Init-контейнер завершается с кодом 0. Повторный bootstrap сохраняет файлы и применяет политику доступа к `files/*` внутри приватного bucket. Локальный сервер S3 — используемый Education форк MinIO Silo. У сервисов отдельные учётные записи и buckets. Том `education_minio_data` хранит объекты, `assignment_postgres_data` хранит отдельную PostgreSQL 17. Flyway использует схему `public` БД `assignment`, Hibernate проверяет схему при старте, JDBC работает в UTC.
@@ -86,7 +78,7 @@ Invoke-RestMethod http://127.0.0.1:8082/api/v1/topics -Method Post -Headers $hea
 
 Создание экзамена включает structure, создание последующей структуры — expectedStructureVersionId и полную structure. Новая версия шкалы требует expectedVersionId, structureVersionId и полную карту от 0 до суммы баллов структуры. Для EGE_PROFILE передаётся testScore 0..100, для EGE_BASE и OGE — schoolMark 2..5. Обе шкалы монотонные. Примеры полного JSON приведены в REST-контракте.
 
-Структуры и шкалы имеют историю и защищены от устаревших записей блокировкой агрегата. ExamScoreConverter принимает конкретный scaleVersionId. CompatiblePositions вычисляет кандидатов переноса при совпадении номера позиции, максимума, способа проверки и набора тем. Сам перенос задач относится к этапу 5. Шкалы заполняет администратор по проверенным данным.
+Структуры и шкалы имеют историю и защищены от устаревших записей блокировкой агрегата. ExamScoreConverter принимает конкретный scaleVersionId. При совпадении номера позиции, максимума, способа проверки и набора тем банк публикует новые версии задач с дополнительными привязками к новой структуре. При конфликте с параллельной правкой пропуск задачи фиксируется в журнале. Шкалы заполняет администратор по проверенным данным.
 
 
 ## Временные изображения, этап 4
@@ -113,3 +105,11 @@ Invoke-WebRequest "http://127.0.0.1:8082/api/v1/tasks/images/$($upload.id)" -Hea
 Локальный S3 требует точный ключ для перечисления multipart и возвращает минимальный XML. Адаптер использует SDK для подписи запроса и совместимую проекцию XML. Штатная серверная очистка неучтённых multipart в текущем стенде настроена на срок 24 часа и интервал 6 часов. Для production проверьте эквивалентную политику в выбранном S3.
 
 Планировщик можно отключить аргументом `--assignment.files.cleanup-enabled=false`. Профиль test отключает расписание и вызывает те же worker-методы вручную. Интервалы задаются свойствами `assignment.files.cleanup-delay-ms` и `assignment.files.reconciliation-delay-ms`.
+
+## Банк задач, этап 5
+
+`GET /api/v1/tasks` возвращает актуальные версии с курсорной пагинацией и фильтрами по владельцу, предмету, экзамену, позиции, темам и формату ответа. Преподаватель создаёт свои задачи через `POST /api/v1/tasks`. Для изменения через `PUT /api/v1/tasks/{id}` передайте `expectedVersionId` из карточки. При изменении содержимого появляется новая версия, при совпадении нормализованного содержимого сохраняется текущая. Доступная учителю и администратору история находится в `/api/v1/tasks/{id}/versions`.
+
+Задача ссылается на загруженное изображение через Markdown `![Подпись](attachment:<UUID>)`. Карточка возвращает адрес скачивания в контексте версии. Ученик видит условия активных импортированных задач и изображения условий. Привязанные изображения сохраняются, пока ими пользуется хотя бы одна версия. Удаление сразу скрывает задачу из банка, а фоновая очистка освобождает все её версии и неиспользуемые изображения.
+
+Миграция V4 добавляет задачи, версии, классификацию, связи файлов и запись об удалении импортированной задачи. Источник `RESHUEGE` зарегистрирован с выключенным импортом. Поддержку библиотечных материалов добавляет этап 6.

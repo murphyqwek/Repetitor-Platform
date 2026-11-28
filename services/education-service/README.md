@@ -218,8 +218,7 @@ Invoke-RestMethod -Uri "http://localhost:8081/api/v1/courses/$($course.id)/sched
 
 ## Layout и адреса
 
-Сервис находится в `services/education-service`, общий Compose — `Docker/local/compose.yml`
-(заглавная `D`). Корневой пустой `docker-compose.yml` не используется.
+Сервис находится в `services/education-service`. Корневой `docker-compose.yml` подключает `Docker/local/compose.yml`.
 Gradle Wrapper скопирован из Identity, версия и SHA-256 закреплены. Identity расширен только согласованным UUID lookup.
 Compose project: `tutor-platform-local`, сеть: `tutor-platform-local_default`.
 Существующие PostgreSQL/Redis/Kafka сохраняют настройки. Education использует отдельный PostgreSQL,
@@ -232,11 +231,10 @@ Compose project: `tutor-platform-local`, сеть: `tutor-platform-local_default
 | MinIO S3 | `http://localhost:9000` | `http://minio:9000` |
 | MinIO Console | `http://localhost:9001` | `http://minio:9001` |
 | Kafka, для будущих этапов | `localhost:9092` | `kafka:29092` |
-| Identity, запускается отдельно | `http://localhost:8080` | `http://host.docker.internal:8080` |
+| Identity | `http://localhost:8080` | `http://identity:8080` |
 
-Redis/Kafka не являются обязательными зависимостями Education на этапе 1. Nginx по-прежнему
-направлен на существующий `API_UPSTREAM`; Education доступен отдельно на 8081.
-Все новые хостовые порты привязаны к `127.0.0.1`.
+Nginx на порту 8090 проксирует Next.js. Запросы из Next.js к Identity и Education идут по сети Compose.
+Хостовые порты привязаны к `127.0.0.1`.
 
 ## Выбор локального S3-хранилища
 
@@ -271,8 +269,7 @@ production-хранилище и миграция существующего Min
   `file:../../dev_secrets/jwt_public.pem`; Compose монтирует только public key read-only в `/run/keys/identity-public.pem`.
 - `EDUCATION_JWT_ISSUER`: `rp-identity`, соответствует существующему Identity.
 - `EDUCATION_IDENTITY_BASE_URL`: адрес Identity для host run; local default `http://localhost:8080`.
-- `EDUCATION_IDENTITY_DOCKER_URL`: адрес Identity с точки зрения контейнера, local default
-  `http://host.docker.internal:8080`. Identity не включён в этот Compose и запускается отдельно.
+- В сети Compose Education обращается к Identity по адресу `http://identity:8080`.
 - `EDUCATION_CURSOR_KEY`: Base64 32 случайных байт, хранить постоянно между перезапусками.
   Смена ключа инвалидирует ранее выданные курсоры. Пустое значение запрещает запуск.
 
@@ -335,9 +332,9 @@ docker version
 docker compose version
 docker pull pgsty/silo:RELEASE.2026-11-12T00-00-00Z@sha256:c20d112390b9a9ce8c11b8af95ad35bcaa62f4759663c09c936cd8d2b511f329
 docker pull pgsty/mc:RELEASE.2026-11-12T00-00-00Z@sha256:b532278b7a3747dbab6fe45eebb40a653efa704e6758e24e9d9ec54fc96c1800
-docker compose --env-file .env -f Docker/local/compose.yml config --quiet
-docker compose --env-file .env -f Docker/local/compose.yml up -d --build
-docker compose --env-file .env -f Docker/local/compose.yml ps -a
+pwsh -File ./start-local.ps1
+docker compose config --quiet
+docker compose ps -a
 curl.exe --fail http://localhost:8081/actuator/health/liveness
 curl.exe --fail http://localhost:8081/actuator/health/readiness
 docker compose --env-file .env -f Docker/local/compose.yml logs --tail 100 education minio-init
@@ -378,6 +375,8 @@ Get-Content ../../.env | ForEach-Object {
     }
 }
 $env:SPRING_PROFILES_ACTIVE = 'local'
+# Если Identity работает в Compose, укажите публичный ключ этого стека:
+# $env:EDUCATION_JWT_PUBLIC_KEY_LOCATION = 'file:../../.local-docker/jwt_public.pem'
 $env:JAVA_TOOL_OPTIONS = '-Duser.timezone=UTC'
 .\gradlew.bat bootRun
 ```
@@ -461,13 +460,13 @@ HTML-отчёт: `build/reports/tests/test/index.html`, XML: `build/test-results
 
 ```powershell
 # Из корня
-docker build -t tutor-education:local services/education-service
+docker build --target java-app --build-arg SERVICE=education-service -t tutor-education:local .
 docker image inspect tutor-education:local --format '{{.Config.User}}'
 ```
 
 Multi-stage build: закреплённые digest Eclipse Temurin JDK17 / JRE17; wrapper с SHA-256;
 runtime `10001:10001`; exec ENTRYPOINT; jar `education-service.jar`.
-Build context ограничен каталогом сервиса; `.env`, ключи, dev_secrets, build/cache и тесты исключены.
+Корневой Dockerfile копирует исходники выбранного сервиса и его Gradle Wrapper. Корневой `.dockerignore` исключает локальные секреты и артефакты сборки.
 Проверено наличие `curl` в закреплённом runtime image для Compose healthcheck.
 Новая общая trace-инфраструктура не добавлялась: в существующем проекте её нет.
 

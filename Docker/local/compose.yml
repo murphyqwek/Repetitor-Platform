@@ -6,20 +6,39 @@ services:
     build:
       context: ../..
       dockerfile: Dockerfile
+      target: gateway
     restart: unless-stopped
-    environment:
-      API_UPSTREAM: ${API_UPSTREAM:-host.docker.internal:8080}
     ports:
       - "127.0.0.1:8090:80"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+    depends_on:
+      frontend:
+        condition: service_healthy
+        restart: true
+
+  frontend:
+    build:
+      context: ../..
+      target: web-app
+    restart: unless-stopped
+    environment:
+      EDUCATION_API_URL: http://education:8080
+    depends_on:
+      identity:
+        condition: service_healthy
+      education:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/login').then(r => { if (!r.ok) process.exit(1) }).catch(() => process.exit(1))"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
 
   postgres:
     image: postgres:17-alpine
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-tutor}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres_password123}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
       POSTGRES_DB: ${POSTGRES_DB:-tutor_platform}
     ports:
       - "127.0.0.1:5432:5432"
@@ -32,6 +51,43 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+
+  identity:
+    build:
+      context: ../..
+      target: java-app
+      args:
+        SERVICE: identity-service
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      IDENTITY_DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-tutor_platform}
+      POSTGRES_USER: ${POSTGRES_USER:-tutor}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?set REDIS_PASSWORD in .env}
+      JWT_ISSUER: ${JWT_ISSUER:-rp-identity}
+      JWT_PRIVATE_KEY_PATH: /run/keys/jwt_private.pem
+      JWT_PUBLIC_KEY_PATH: /run/keys/jwt_public.pem
+      STUDENT_CREDENTIALS_KEY: ${STUDENT_CREDENTIALS_KEY:?set STUDENT_CREDENTIALS_KEY in .env}
+      ASSIGNMENT_IDENTITY_SIGNING_KEY: ${ASSIGNMENT_IDENTITY_SIGNING_KEY:?set ASSIGNMENT_IDENTITY_SIGNING_KEY in .env}
+    volumes:
+      - ../../.local-docker/jwt_private.pem:/run/keys/jwt_private.pem:ro
+      - ../../.local-docker/jwt_public.pem:/run/keys/jwt_public.pem:ro
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "--max-time", "5", "http://localhost:8080/actuator/health"]
+      interval: 5s
+      timeout: 6s
+      start_period: 40s
+      retries: 12
 
   education-postgres:
     image: postgres:17-alpine
@@ -87,16 +143,19 @@ services:
 
   education:
     build:
-      context: ../../services/education-service
+      context: ../..
+      target: java-app
+      args:
+        SERVICE: education-service
     restart: unless-stopped
     environment:
       SPRING_PROFILES_ACTIVE: local
       EDUCATION_PORT: 8080
       EDUCATION_JWT_PUBLIC_KEY_LOCATION: file:/run/keys/identity-public.pem
-      EDUCATION_JWT_ISSUER: ${EDUCATION_JWT_ISSUER:-rp-identity}
-      EDUCATION_IDENTITY_BASE_URL: ${EDUCATION_IDENTITY_DOCKER_URL:-http://host.docker.internal:8080}
+      EDUCATION_JWT_ISSUER: ${JWT_ISSUER:-rp-identity}
+      EDUCATION_IDENTITY_BASE_URL: http://identity:8080
       EDUCATION_CURSOR_KEY: ${EDUCATION_CURSOR_KEY:?set EDUCATION_CURSOR_KEY in .env}
-      ASSIGNMENT_EDUCATION_SIGNING_KEY: ${ASSIGNMENT_EDUCATION_SIGNING_KEY:-}
+      ASSIGNMENT_EDUCATION_SIGNING_KEY: ${ASSIGNMENT_EDUCATION_SIGNING_KEY:?set ASSIGNMENT_EDUCATION_SIGNING_KEY in .env}
       EDUCATION_ASSIGNMENT_TOKEN: ${EDUCATION_ASSIGNMENT_TOKEN:-}
       EDUCATION_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       EDUCATION_SCHEDULE_TOPIC: ${EDUCATION_SCHEDULE_TOPIC:-education.schedule.v1}
@@ -109,12 +168,12 @@ services:
       EDUCATION_S3_ACCESS_KEY: ${EDUCATION_S3_ACCESS_KEY:?set EDUCATION_S3_ACCESS_KEY in .env}
       EDUCATION_S3_SECRET_KEY: ${EDUCATION_S3_SECRET_KEY:?set EDUCATION_S3_SECRET_KEY in .env}
     volumes:
-      - ../../dev_secrets/jwt_public.pem:/run/keys/identity-public.pem:ro
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - ../../.local-docker/jwt_public.pem:/run/keys/identity-public.pem:ro
     ports:
       - "127.0.0.1:8081:8080"
     depends_on:
+      identity:
+        condition: service_healthy
       education-postgres:
         condition: service_healthy
       minio-init:
@@ -127,13 +186,12 @@ services:
       retries: 6
 
   assignment-postgres:
-    profiles: [assignment]
     image: postgres:17-alpine
     restart: unless-stopped
     environment:
       POSTGRES_DB: assignment
       POSTGRES_USER: ${ASSIGNMENT_DB_USER:-assignment}
-      POSTGRES_PASSWORD: ${ASSIGNMENT_DB_PASSWORD:-}
+      POSTGRES_PASSWORD: ${ASSIGNMENT_DB_PASSWORD:?set ASSIGNMENT_DB_PASSWORD in .env}
     ports:
       - "127.0.0.1:${ASSIGNMENT_DB_HOST_PORT:-5434}:5432"
     volumes:
@@ -145,7 +203,6 @@ services:
       retries: 20
 
   assignment-minio-init:
-    profiles: [assignment]
     image: pgsty/mc:RELEASE.2026-11-12T00-00-00Z@sha256:b532278b7a3747dbab6fe45eebb40a653efa704e6758e24e9d9ec54fc96c1800
     depends_on:
       minio:
@@ -156,43 +213,45 @@ services:
       EDUCATION_S3_BUCKET: ${EDUCATION_S3_BUCKET:-education-private}
       EDUCATION_S3_ACCESS_KEY: ${EDUCATION_S3_ACCESS_KEY:?set EDUCATION_S3_ACCESS_KEY in .env}
       ASSIGNMENT_S3_BUCKET: ${ASSIGNMENT_S3_BUCKET:-assignment-private}
-      ASSIGNMENT_S3_ACCESS_KEY: ${ASSIGNMENT_S3_ACCESS_KEY:-}
-      ASSIGNMENT_S3_SECRET_KEY: ${ASSIGNMENT_S3_SECRET_KEY:-}
+      ASSIGNMENT_S3_ACCESS_KEY: ${ASSIGNMENT_S3_ACCESS_KEY:?set ASSIGNMENT_S3_ACCESS_KEY in .env}
+      ASSIGNMENT_S3_SECRET_KEY: ${ASSIGNMENT_S3_SECRET_KEY:?set ASSIGNMENT_S3_SECRET_KEY in .env}
     volumes:
       - ./minio/bootstrap.sh:/bootstrap.sh:ro
     entrypoint: ["/bin/sh", "/bootstrap.sh", "assignment"]
     restart: "no"
 
   assignment:
-    profiles: [assignment]
     build:
-      context: ../../services/assignment-service
+      context: ../..
+      target: java-app
+      args:
+        SERVICE: assignment-service
     restart: unless-stopped
     environment:
       SPRING_PROFILES_ACTIVE: local
       ASSIGNMENT_JWT_PUBLIC_KEY_LOCATION: file:/run/keys/identity-public.pem
       JWT_ISSUER: ${JWT_ISSUER:-rp-identity}
-      ASSIGNMENT_IDENTITY_URL: ${ASSIGNMENT_IDENTITY_DOCKER_URL:-http://host.docker.internal:8080}
+      ASSIGNMENT_IDENTITY_URL: http://identity:8080
       ASSIGNMENT_EDUCATION_URL: http://education:8080
-      ASSIGNMENT_IDENTITY_SIGNING_KEY: ${ASSIGNMENT_IDENTITY_SIGNING_KEY:-}
-      ASSIGNMENT_EDUCATION_SIGNING_KEY: ${ASSIGNMENT_EDUCATION_SIGNING_KEY:-}
-      ASSIGNMENT_CURSOR_KEY: ${ASSIGNMENT_CURSOR_KEY:-}
+      ASSIGNMENT_IDENTITY_SIGNING_KEY: ${ASSIGNMENT_IDENTITY_SIGNING_KEY:?set ASSIGNMENT_IDENTITY_SIGNING_KEY in .env}
+      ASSIGNMENT_EDUCATION_SIGNING_KEY: ${ASSIGNMENT_EDUCATION_SIGNING_KEY:?set ASSIGNMENT_EDUCATION_SIGNING_KEY in .env}
+      ASSIGNMENT_CURSOR_KEY: ${ASSIGNMENT_CURSOR_KEY:?set ASSIGNMENT_CURSOR_KEY in .env}
       ASSIGNMENT_PORT: 8080
       ASSIGNMENT_DB_URL: jdbc:postgresql://assignment-postgres:5432/assignment
       ASSIGNMENT_DB_USER: ${ASSIGNMENT_DB_USER:-assignment}
-      ASSIGNMENT_DB_PASSWORD: ${ASSIGNMENT_DB_PASSWORD:-}
+      ASSIGNMENT_DB_PASSWORD: ${ASSIGNMENT_DB_PASSWORD:?set ASSIGNMENT_DB_PASSWORD in .env}
       ASSIGNMENT_S3_ENDPOINT: http://minio:9000
       ASSIGNMENT_S3_BUCKET: ${ASSIGNMENT_S3_BUCKET:-assignment-private}
-      ASSIGNMENT_S3_ACCESS_KEY: ${ASSIGNMENT_S3_ACCESS_KEY:-}
-      ASSIGNMENT_S3_SECRET_KEY: ${ASSIGNMENT_S3_SECRET_KEY:-}
+      ASSIGNMENT_S3_ACCESS_KEY: ${ASSIGNMENT_S3_ACCESS_KEY:?set ASSIGNMENT_S3_ACCESS_KEY in .env}
+      ASSIGNMENT_S3_SECRET_KEY: ${ASSIGNMENT_S3_SECRET_KEY:?set ASSIGNMENT_S3_SECRET_KEY in .env}
       ASSIGNMENT_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
     volumes:
-      - ../../dev_secrets/jwt_public.pem:/run/keys/identity-public.pem:ro
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - ../../.local-docker/jwt_public.pem:/run/keys/identity-public.pem:ro
     ports:
       - "127.0.0.1:${ASSIGNMENT_PORT:-8082}:8080"
     depends_on:
+      education:
+        condition: service_healthy
       assignment-postgres:
         condition: service_healthy
       assignment-minio-init:
@@ -211,14 +270,16 @@ services:
       - "127.0.0.1:6379:6379"
     volumes:
       - redis_data:/data
+    environment:
+      REDISCLI_AUTH: ${REDIS_PASSWORD:?set REDIS_PASSWORD in .env}
     command:
       - redis-server
       - --appendonly
       - "yes"
       - --requirepass
-      - "${REDIS_PASSWORD}"
+      - "${REDIS_PASSWORD:?set REDIS_PASSWORD in .env}"
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD-SHELL", "redis-cli ping | grep -qx PONG"]
       interval: 5s
       timeout: 3s
       retries: 10
