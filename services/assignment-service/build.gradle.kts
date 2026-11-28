@@ -25,6 +25,10 @@ dependencies {
     implementation("org.flywaydb:flyway-database-postgresql")
     implementation("org.apache.kafka:kafka-clients")
     implementation("io.minio:minio:8.6.0")
+    implementation("org.commonmark:commonmark:0.32.0")
+    compileOnly("org.projectlombok:lombok")
+    annotationProcessor(platform("org.springframework.boot:spring-boot-dependencies:4.1.1"))
+    annotationProcessor("org.projectlombok:lombok")
     runtimeOnly("org.postgresql:postgresql")
 
     testImplementation(platform("org.springframework.boot:spring-boot-dependencies:4.1.1"))

@@ -1,7 +1,6 @@
 package tutor.identityservice.worker;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,9 +12,8 @@ import java.time.Clock;
 import java.time.Instant;
 
 @Component
+@Slf4j
 public class ExpiredCodeCleanupWorker {
-
-    private static final Logger log = LoggerFactory.getLogger(ExpiredCodeCleanupWorker.class);
 
     private final InvitationCodeRepository invitationCodeRepository;
     private final TeacherRegistrationCodeRepository teacherRegistrationCodeRepository;

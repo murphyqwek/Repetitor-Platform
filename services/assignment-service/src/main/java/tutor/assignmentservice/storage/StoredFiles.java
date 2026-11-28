@@ -95,6 +95,42 @@ public class StoredFiles {
         });
     }
 
+    // The caller holds the task lock and adds the version links in the same transaction.
+    public File lockTaskImage(UUID id, UUID task, CurrentUser actor) {
+        File file = load(id, true);
+        if (file == null || !"TASK_IMAGE".equals(file.purpose())) throw missing();
+        if ("READY".equals(file.state())) {
+            authorize(file, actor);
+            if (file.expiresAt().isAfter(clock.instant())) return file;
+        }
+        if ("ATTACHED".equals(file.state()) && Boolean.TRUE.equals(jdbc.queryForObject("""
+                select exists(select 1 from task_version_file f join task_version v on v.id=f.task_version_id
+                    where f.file_id=? and v.task_id=? and v.publication_state='ACTIVE')
+                """, Boolean.class, id, task))) return file;
+        throw missing();
+    }
+
+    public void attachTaskImage(File file) {
+        if ("READY".equals(file.state())) {
+            jdbc.update("update stored_file set state='ATTACHED',expires_at=null,updated_at=? where id=?",
+                    time(clock.instant()), file.id());
+        }
+    }
+
+    public void lockTaskImages(List<UUID> ids) {
+        ids.stream().sorted().forEach(id -> load(id, true));
+    }
+
+    public void deleteUnreferencedTaskImages(List<UUID> ids) {
+        for (UUID id : ids) {
+            File file = load(id, false);
+            if (file != null && "ATTACHED".equals(file.state()) && !Boolean.TRUE.equals(jdbc.queryForObject(
+                    "select exists(select 1 from task_version_file where file_id=?)", Boolean.class, id))) {
+                markDeleting(file);
+            }
+        }
+    }
+
     private void authorize(File file, CurrentUser actor) {
         if (file == null || (!actor.roles().contains(Role.ADMIN) && !actor.id().equals(file.uploader()))) throw missing();
         if (!"TASK_IMAGE".equals(file.purpose()))

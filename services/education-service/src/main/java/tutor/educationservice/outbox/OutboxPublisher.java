@@ -2,13 +2,14 @@ package tutor.educationservice.outbox;
 
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.*;
-import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
+@Slf4j
 public class OutboxPublisher {
     private record Pending(UUID id, UUID aggregateId, String payload) {}
     private final JdbcTemplate jdbc;
@@ -28,7 +29,7 @@ public class OutboxPublisher {
         try {
             for (int i = 0; i < properties.batchSize(); i++) if (!publishOne()) return;
         } catch (RuntimeException exception) {
-            LoggerFactory.getLogger(OutboxPublisher.class).warn("Outbox publication failed; pending event will be retried");
+            log.warn("Outbox publication failed; pending event will be retried");
         }
     }
 

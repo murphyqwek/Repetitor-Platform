@@ -1,12 +1,11 @@
 package tutor.assignmentservice.storage;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Component
+@Slf4j
 public class FileCleanup {
-    private static final Logger LOG = LoggerFactory.getLogger(FileCleanup.class);
     private static final int BATCH_SIZE = 10;
     private final StoredFiles files;
     private final ObjectStorage storage;
@@ -37,10 +36,10 @@ public class FileCleanup {
                 files.complete(job);
             } catch (StorageException ex) {
                 files.retry(job, "STORAGE_UNAVAILABLE");
-                LOG.warn("File cleanup dependency unavailable, jobId={}", job.id());
+                log.warn("File cleanup dependency unavailable, jobId={}", job.id());
             } catch (RuntimeException ex) {
                 files.retry(job, "CLEANUP_ERROR");
-                LOG.warn("File cleanup failed, jobId={}, error={}", job.id(), ex.getClass().getSimpleName());
+                log.warn("File cleanup failed, jobId={}, error={}", job.id(), ex.getClass().getSimpleName());
             }
         }
     }

@@ -10,7 +10,9 @@ import java.io.BufferedInputStream;
 import java.io.InputStream;
 import java.util.Objects;
 import java.util.regex.Pattern;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 final class MinioObjectStorage implements ObjectStorage {
     private static final int PART_SIZE = 10 * 1024 * 1024;
     private static final Pattern KEY = Pattern.compile("files/[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}");
@@ -170,7 +172,7 @@ final class MinioObjectStorage implements ObjectStorage {
         }
         Throwable root = rootCause(exception);
         String code = root instanceof ErrorResponseException response ? response.errorResponse().code() : "-";
-        org.slf4j.LoggerFactory.getLogger(MinioObjectStorage.class).warn(
+        log.warn(
                 "Object storage request failed, operation={}, error={}, code={}, at={}",
                 operation, root.getClass().getSimpleName(), code,
                 root.getStackTrace().length == 0 ? "-" : root.getStackTrace()[0]);

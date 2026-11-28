@@ -4,11 +4,13 @@ import java.io.*;
 import java.nio.file.*;
 import java.security.*;
 import java.util.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.multipart.MultipartFile;
 import tutor.assignmentservice.common.error.ApiException;
 
 /** Validates into a bounded temporary file so the hashed bytes are exactly the bytes sent to S3. */
+@Slf4j
 final class ImageUpload implements AutoCloseable {
     static final long MAX_SIZE = 10_000_000;
     final Path path;
@@ -84,7 +86,7 @@ final class ImageUpload implements AutoCloseable {
         try {
             Files.deleteIfExists(path);
         } catch (IOException ex) {
-            org.slf4j.LoggerFactory.getLogger(ImageUpload.class).warn("Cannot remove temporary upload file");
+            log.warn("Cannot remove temporary upload file");
         }
     }
 }

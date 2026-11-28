@@ -21,6 +21,10 @@ import tutor.assignmentservice.ProviderStub;
 import tutor.assignmentservice.TestJwt;
 import tutor.assignmentservice.common.error.ApiException;
 import tutor.assignmentservice.common.pagination.CursorCodec;
+import tutor.assignmentservice.bank.BankDtos;
+import tutor.assignmentservice.bank.AnswerType;
+import tutor.assignmentservice.bank.TaskBank;
+import tutor.assignmentservice.bank.TaskCleanup;
 import tutor.assignmentservice.integration.identity.IdentityClient;
 import tutor.assignmentservice.integration.education.EducationClient;
 import tutor.assignmentservice.security.CurrentUser;
@@ -358,7 +362,7 @@ class AssignmentInfrastructureTest {
         var start=new java.util.concurrent.CountDownLatch(1);
         java.util.concurrent.Callable<Boolean> update=()->{
             start.await();
-            try { catalog.createStructure(id,input); return true; }
+            try { catalog.createStructure(id,input,TestJwt.USER); return true; }
             catch(ApiException ex) { assertThat(ex.status().value()).isEqualTo(409); return false; }
         };
         try {
@@ -372,7 +376,7 @@ class AssignmentInfrastructureTest {
 
     @Test void migratesV1WithoutLosingDataAndChecksSqlConstraints() {
         assertThat(flyway.migrate().migrationsExecuted).isZero();
-        assertThat(db.queryForObject("select count(*) from information_schema.tables where table_schema='public' and table_name<>'flyway_schema_history'",Integer.class)).isEqualTo(12);
+        assertThat(db.queryForObject("select count(*) from information_schema.tables where table_schema='public' and table_name<>'flyway_schema_history'",Integer.class)).isEqualTo(19);
         var old=org.flywaydb.core.Flyway.configure().dataSource(postgres.getJdbcUrl(),postgres.getUsername(),postgres.getPassword())
                 .schemas("catalog_upgrade").defaultSchema("catalog_upgrade").target("1").load();
         old.migrate();
@@ -380,7 +384,7 @@ class AssignmentInfrastructureTest {
         db.update("insert into catalog_upgrade.preserved values(1)");
         var latest=org.flywaydb.core.Flyway.configure().dataSource(postgres.getJdbcUrl(),postgres.getUsername(),postgres.getPassword())
                 .schemas("catalog_upgrade").defaultSchema("catalog_upgrade").load();
-        assertThat(latest.migrate().migrationsExecuted).isEqualTo(2);
+        assertThat(latest.migrate().migrationsExecuted).isEqualTo(3);
         assertThat(latest.migrate().migrationsExecuted).isZero();
         assertThat(db.queryForObject("select count(*) from catalog_upgrade.preserved",Integer.class)).isEqualTo(1);
         assertThatThrownBy(()->db.update("insert into exam_definition values(?,1,2028,?,now())",UUID.randomUUID(),UUID.randomUUID())).isInstanceOf(org.springframework.dao.DataIntegrityViolationException.class);
@@ -392,13 +396,212 @@ class AssignmentInfrastructureTest {
     @Autowired StoredFiles storedFiles;
     @Autowired FileService fileService;
     @Autowired FileCleanup fileCleanup;
+    @Autowired TaskBank bank;
+    @Autowired TaskCleanup taskCleanup;
     @Autowired org.springframework.transaction.PlatformTransactionManager transactionManager;
     private static final byte[] PNG = java.util.Base64.getDecoder().decode(
             "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aM4sAAAAASUVORK5CYII=");
 
+    @Test
+    void taskBankKeepsVersionsAndScopesItsCursors() throws Exception {
+        UUID teacher = UUID.randomUUID();
+        UUID colleague = UUID.randomUUID();
+        String marker = UUID.randomUUID().toString();
+        var first = bankApi("POST", "/tasks", teacher, "TEACHER", numberTask(marker + " first"), 201);
+        var second = bankApi("POST", "/tasks", teacher, "TEACHER", numberTask(marker + " second"), 201);
+        String task = "/tasks/" + first.path("id").asString();
+        String previous = first.path("versionId").asString();
+        bankApi("POST", "/tasks", teacher, "ADMIN", numberTask(marker), 403);
+        bankApi("GET", task, colleague, "TEACHER", null, 404);
+        bankApi("GET", task, colleague, "STUDENT", null, 404);
+
+        db.update("update task set created_at='2026-11-28 08:00:00+00' where id in (?,?)",
+                UUID.fromString(first.path("id").asString()), UUID.fromString(second.path("id").asString()));
+        String list = "/tasks?scope=OWNED&limit=1&answerType=NUMBER&search=" + marker;
+        var page = bankApi("GET", list, teacher, "TEACHER", null, 200);
+        assertThat(page.path("hasMore").asBoolean()).isTrue();
+        String cursor = page.path("nextCursor").asString();
+        var more = bankApi("GET", list + "&cursor=" + cursor, teacher, "TEACHER", null, 200);
+        assertThat(more.path("items").get(0).path("id").asString())
+                .isNotEqualTo(page.path("items").get(0).path("id").asString());
+        bankApi("GET", list + "&cursor=" + cursor, colleague, "TEACHER", null, 400);
+
+        var write = numberTask(marker + " first");
+        write.put("expectedVersionId", previous);
+        write.put("correctAnswer", Map.of("acceptedAnswers", List.of("+2.50")));
+        assertThat(bankApi("PUT", task, teacher, "TEACHER", write, 200).path("versionId").asString()).isEqualTo(previous);
+        write.put("statement", marker + " changed");
+        var updated = bankApi("PUT", task, teacher, "TEACHER", write, 201);
+        assertThat(bankApi("PUT", task, teacher, "TEACHER", write, 409).path("currentVersionId").asString())
+                .isEqualTo(updated.path("versionId").asString());
+        var detail = bankApi("GET", task + "/versions/" + previous, teacher, "TEACHER", null, 200);
+        assertThat(detail.path("statement").asString()).isEqualTo(marker + " first");
+        assertThat(detail.path("correctAnswer").path("acceptedAnswers").get(0).asString()).isEqualTo("2.5");
+        var versions = bankApi("GET", task + "/versions?limit=1", teacher, "TEACHER", null, 200);
+        assertThat(versions.path("items").get(0).path("current").asBoolean()).isTrue();
+        var oldVersions = bankApi("GET", task + "/versions?cursor=" + versions.path("nextCursor").asString(),
+                teacher, "TEACHER", null, 200);
+        assertThat(oldVersions.path("items").get(0).path("id").asString()).isEqualTo(previous);
+    }
+
+    @Test
+    void onlyOneConcurrentTaskUpdateCanReplaceTheExpectedVersion() throws Exception {
+        var actor = new CurrentUser(UUID.randomUUID(), Set.of(tutor.assignmentservice.security.Role.TEACHER), "Teacher");
+        var original = bank.create(taskWrite("Original", null), actor);
+        var pool = java.util.concurrent.Executors.newFixedThreadPool(2);
+        var start = new java.util.concurrent.CountDownLatch(1);
+        java.util.concurrent.Callable<Integer> update = () -> {
+            start.await();
+            try {
+                return bank.update(original.id(), taskWrite(UUID.randomUUID().toString(), original.versionId()), actor)
+                        .receipt().version();
+            } catch (ApiException conflict) {
+                return conflict.status().value();
+            }
+        };
+        try {
+            var first = pool.submit(update);
+            var second = pool.submit(update);
+            start.countDown();
+            assertThat(List.of(first.get(15, java.util.concurrent.TimeUnit.SECONDS),
+                    second.get(15, java.util.concurrent.TimeUnit.SECONDS))).containsExactlyInAnyOrder(2, 409);
+        } finally {
+            pool.shutdownNow();
+        }
+    }
+
+    @Test
+    void classificationTransferCreatesANewVersionOnlyForCompatiblePositions() throws Exception {
+        int topic = api("POST", "/topics", Map.of("subjectId", 1, "name", "Transfer-" + UUID.randomUUID()), 201)
+                .path("id").asInt();
+        var positions = List.of(
+                Map.of("position", 1, "maxScore", 1, "checkMode", "AUTOMATIC", "topicIds", List.of(topic)),
+                Map.of("position", 2, "maxScore", 1, "checkMode", "AUTOMATIC", "topicIds", List.of(topic)));
+        var exam = api("POST", "/exams", Map.of("examTypeId", 3, "year", 2199,
+                "structure", Map.of("durationMinutes", 90, "positions", positions)), 201);
+        String old = exam.path("currentStructureVersionId").asString();
+        var oldPositions = exam.path("structure").path("positions");
+        UUID teacher = UUID.randomUUID();
+        var body = numberTask("Compatible");
+        body.put("examPositionIds", List.of(oldPositions.get(0).path("id").asString()));
+        body.put("topicIds", List.of(topic));
+        var compatible = bankApi("POST", "/tasks", teacher, "TEACHER", body, 201);
+        body.put("statement", "Incompatible");
+        body.put("examPositionIds", List.of(oldPositions.get(1).path("id").asString()));
+        var incompatible = bankApi("POST", "/tasks", teacher, "TEACHER", body, 201);
+
+        String examId = exam.path("id").asString();
+        var next = api("POST", "/exams/" + examId + "/structures", Map.of("expectedStructureVersionId", old,
+                "structure", Map.of("durationMinutes", 120, "positions", List.of(positions.get(0),
+                        Map.of("position", 2, "maxScore", 2, "checkMode", "AUTOMATIC", "topicIds", List.of(topic))))), 201);
+        var filter = "/tasks?examDefinitionId=" + examId + "&examStructureVersionId=" + next.path("id").asString()
+                + "&position=1&topicIds=" + topic + ",2147483647";
+        var matches = bankApi("GET", filter, teacher, "TEACHER", null, 200).path("items");
+        assertThat(matches.size()).isOne();
+        assertThat(matches.get(0).path("id").asString()).isEqualTo(compatible.path("id").asString());
+        assertThat(matches.get(0).path("version").asInt()).isEqualTo(2);
+        var history = bankApi("GET", "/tasks/" + compatible.path("id").asString() + "/versions/"
+                + compatible.path("versionId").asString(), teacher, "TEACHER", null, 200);
+        assertThat(history.path("examPositions").size()).isOne();
+        assertThat(bankApi("GET", "/tasks/" + incompatible.path("id").asString(), teacher, "TEACHER", null, 200)
+                .path("version").asInt()).isOne();
+    }
+
+    @Test
+    void importedCopySharesImagesAndStudentCannotReadExplanation() throws Exception {
+        UUID teacher = UUID.randomUUID(), student = UUID.randomUUID(), admin = UUID.randomUUID();
+        UUID statement = UUID.fromString(json.readTree(uploadImage(PNG, "image/png", teacher, "TEACHER").body())
+                .path("id").asString());
+        UUID explanation = UUID.fromString(json.readTree(uploadImage(PNG, "image/png", teacher, "TEACHER").body())
+                .path("id").asString());
+        var write = numberTask("Condition ![figure](attachment:" + statement + ")");
+        write.put("explanation", "Solution ![figure](attachment:" + explanation + ")");
+        int topic = api("POST", "/topics", Map.of("subjectId", 1, "name", "Imported-" + UUID.randomUUID()), 201)
+                .path("id").asInt();
+        var exam = api("POST", "/exams", Map.of("examTypeId", 3, "year", 2198, "structure", layout(topic, 1)), 201);
+        write.put("examPositionIds", List.of(exam.path("structure").path("positions").get(0).path("id").asString()));
+        bankApi("POST", "/tasks", admin, "TEACHER", write, 404);
+        var unsafe = numberTask("![remote](https://example.com/figure.png)");
+        bankApi("POST", "/tasks", teacher, "TEACHER", unsafe, 422);
+        bankApi("POST", "/tasks", teacher, "TEACHER", numberTask("<img src='x'>"), 422);
+        var original = bankApi("POST", "/tasks", teacher, "TEACHER", write, 201);
+        String id = original.path("id").asString();
+        String version = original.path("versionId").asString();
+        UUID identical = UUID.fromString(json.readTree(uploadImage(PNG, "image/png", teacher, "TEACHER").body())
+                .path("id").asString());
+        write.put("statement", "Condition ![figure](attachment:" + identical + ")");
+        write.put("expectedVersionId", version);
+        assertThat(bankApi("PUT", "/tasks/" + id, teacher, "TEACHER", write, 200).path("versionId").asString())
+                .isEqualTo(version);
+        assertThat(db.queryForObject("select state from stored_file where id=?", String.class, identical)).isEqualTo("READY");
+        String externalKey = "fixture-" + id;
+        int source = db.queryForObject("select id from import_source where code='RESHUEGE'", Integer.class);
+        db.update("update task set teacher_id=null,source_id=?,external_key=? where id=?", source, externalKey, UUID.fromString(id));
+
+        var visible = bankApi("GET", "/tasks/" + id, student, "STUDENT", null, 200);
+        assertThat(visible.has("correctAnswer")).isFalse();
+        assertThat(visible.has("explanation")).isFalse();
+        assertThat(visible.path("images").size()).isOne();
+        assertThat(bankApi("GET", "/tasks?scope=IMPORTED", student, "STUDENT", null, 200)
+                .path("items").get(0).path("id").asString()).isEqualTo(id);
+        bankApi("GET", "/tasks/" + id + "/versions/" + version, student, "STUDENT", null, 403);
+        var imagePath = "/api/v1/tasks/" + id + "/versions/" + version + "/images/";
+        assertThat(assignmentHttp("GET", imagePath + statement + "/content", student, "STUDENT", null, null).body())
+                .isEqualTo(PNG);
+        assertThat(assignmentHttp("GET", imagePath + explanation + "/content", student, "STUDENT", null, null).statusCode())
+                .isEqualTo(404);
+        assertThat(imageHttp("DELETE", "/" + statement, teacher, "TEACHER", null, null).statusCode())
+                .isEqualTo(409);
+        UUID copyOwner = UUID.randomUUID();
+        var copy = bankApi("POST", "/tasks/" + id + "/copy", copyOwner, "TEACHER", Map.of("sourceVersionId", version), 201);
+        var copyId = copy.path("id").asString();
+        String copyImage = "/api/v1/tasks/" + copyId + "/versions/" + copy.path("versionId").asString()
+                + "/images/" + statement + "/content";
+        write.put("statement", "Changed copy ![figure](attachment:" + statement + ")");
+        write.put("expectedVersionId", copy.path("versionId").asString());
+        assertThat(bankApi("PUT", "/tasks/" + copyId, copyOwner, "TEACHER", write, 201).path("version").asInt()).isEqualTo(2);
+        assertThat(bankApi("GET", "/tasks/" + id, student, "STUDENT", null, 200).path("versionId").asString())
+                .isEqualTo(version);
+
+        bankApi("PATCH", "/tasks/" + id + "/import-settings", admin, "ADMIN", Map.of("manualOverride", true), 200);
+        assertThat(db.queryForObject("select manual_override from task where id=?", Boolean.class, UUID.fromString(id))).isTrue();
+        var job = bankApi("DELETE", "/tasks/" + id, admin, "ADMIN", null, 202).path("cleanupJobId").asString();
+        assertThat(bankApi("DELETE", "/tasks/" + id, admin, "ADMIN", null, 202).path("cleanupJobId").asString()).isEqualTo(job);
+        assertThat(taskCleanup.runOne()).isTrue();
+        bankApi("GET", "/tasks/" + id, student, "STUDENT", null, 404);
+        assertThat(db.queryForObject("select count(*) from deleted_imported_task where source_id=? and external_key=?",
+                Integer.class, source, externalKey)).isOne();
+        assertThat(assignmentHttp("GET", copyImage, copyOwner, "TEACHER", null, null).body()).isEqualTo(PNG);
+        bankApi("DELETE", "/tasks/" + copyId, copyOwner, "TEACHER", null, 202);
+        assertThat(taskCleanup.runOne()).isTrue();
+        assertThat(db.queryForObject("select state from stored_file where id=?", String.class, statement)).isEqualTo("DELETING");
+    }
+
+    private BankDtos.Write taskWrite(String statement, UUID expected) {
+        return new BankDtos.Write(1, statement, null, AnswerType.NUMBER, json.createObjectNode(),
+                json.valueToTree(Map.of("acceptedAnswers", List.of("2.5"))), null, Set.of(), Set.of(), List.of(), expected);
+    }
+
+    private java.util.HashMap<String, Object> numberTask(String statement) {
+        return new java.util.HashMap<>(Map.of("subjectId", 1, "statement", statement, "answerType", "NUMBER",
+                "answerConfig", Map.of(), "correctAnswer", Map.of("acceptedAnswers", List.of("2.5"))));
+    }
+
+    private tools.jackson.databind.JsonNode bankApi(String method, String path, UUID actor, String role, Object body,
+                                                   int status) throws Exception {
+        var result = assignmentHttp(method, "/api/v1" + path, actor, role,
+                body == null ? null : json.writeValueAsBytes(body), "application/json");
+        assertThat(result.statusCode()).as(new String(result.body(), java.nio.charset.StandardCharsets.UTF_8)).isEqualTo(status);
+        return json.readTree(result.body());
+    }
+
     private HttpResponse<byte[]> imageHttp(String method, String path, UUID actor, String role, byte[] body, String type) throws Exception {
+        return assignmentHttp(method, "/api/v1/tasks/images" + path, actor, role, body, type);
+    }
+
+    private HttpResponse<byte[]> assignmentHttp(String method, String path, UUID actor, String role, byte[] body, String type) throws Exception {
         identity.respond(200, user(false, true, role).replace(TestJwt.USER.toString(), actor.toString()));
-        var request = HttpRequest.newBuilder(URI.create(baseUrl() + "/api/v1/tasks/images" + path))
+        var request = HttpRequest.newBuilder(URI.create(baseUrl() + path))
                 .header("Authorization", "Bearer " + TestJwt.token(List.of(role), c -> c.subject(actor.toString()), false))
                 .timeout(java.time.Duration.ofSeconds(15));
         if (type != null) request.header("Content-Type", type);
@@ -515,7 +718,7 @@ class AssignmentInfrastructureTest {
             assertThatThrownBy(() -> pending.get(15,java.util.concurrent.TimeUnit.SECONDS)).hasCauseInstanceOf(ApiException.class);
             assertThat(storage.head(key.get()).size()).isEqualTo(PNG.length);
             assertThatThrownBy(() -> storedFiles.preview(id,actor)).isInstanceOf(ApiException.class);
-            db.update("update cleanup_job set next_attempt_at=now() where id=?",job);
+            db.update("update cleanup_job set next_attempt_at=timestamp '2020-01-01' where id=?",job);
             fileCleanup.runOnce();
             assertThat(db.queryForObject("select status from cleanup_job where id=?",String.class,job)).isEqualTo("COMPLETED");
             assertThat(db.queryForObject("select count(*) from stored_file where id=?",Integer.class,id)).isZero();
@@ -549,11 +752,11 @@ class AssignmentInfrastructureTest {
         fileCleanup.runOnce();
         assertThat(db.queryForObject("select state from stored_file where id=?",String.class,id)).isEqualTo("DELETING");
         storage.put(key,new ByteArrayInputStream(PNG),PNG.length,"image/png");
-        db.update("update cleanup_job set next_attempt_at=now() where resource_id=?",id);
+        db.update("update cleanup_job set next_attempt_at=timestamp '2020-01-01' where resource_id=?",id);
         fileCleanup.runOnce();
         assertThatThrownBy(()->storage.head(key)).isInstanceOf(StorageException.class);
         storedFiles.acknowledgeUpload(id,token);
-        db.update("update cleanup_job set next_attempt_at=now() where resource_id=?",id);
+        db.update("update cleanup_job set next_attempt_at=timestamp '2020-01-01' where resource_id=?",id);
         fileCleanup.runOnce();
         try (var client = io.minio.MinioAsyncClient.builder().endpoint(s3Endpoint()).credentials(ACCESS,SECRET).build()) {
             var reserved = storedFiles.begin(actor,"multipart.png","image/png",PNG.length);
@@ -566,7 +769,7 @@ class AssignmentInfrastructureTest {
             fileCleanup.runOnce();
             assertThat(storage.listMultipart(orphan,null,null,100).uploads()).doesNotContain(new ObjectStorage.Multipart(orphan,uploadId));
             storedFiles.acknowledgeUpload(reserved.id(),reserved.uploadToken());
-            db.update("update cleanup_job set next_attempt_at=now() where resource_id=?",reserved.id());
+            db.update("update cleanup_job set next_attempt_at=timestamp '2020-01-01' where resource_id=?",reserved.id());
             fileCleanup.runOnce();
         }
     }
@@ -596,11 +799,11 @@ class AssignmentInfrastructureTest {
         assertThat(db.queryForObject("select state from stored_file where id=?",String.class,abandoned.id())).isEqualTo("DELETING");
         storage.put(abandoned.key(),new ByteArrayInputStream(PNG),PNG.length,"image/png");
         assertThatThrownBy(()->storedFiles.ready(abandoned.id(),abandoned.uploadToken(),"0".repeat(64))).isInstanceOf(ApiException.class);
-        db.update("update cleanup_job set next_attempt_at=now() where resource_id=?",abandoned.id());
+        db.update("update cleanup_job set next_attempt_at=timestamp '2020-01-01' where resource_id=?",abandoned.id());
         fileCleanup.runOnce();
         assertThatThrownBy(()->storage.head(abandoned.key())).isInstanceOf(StorageException.class);
         storedFiles.acknowledgeUpload(abandoned.id(),abandoned.uploadToken());
-        db.update("update cleanup_job set next_attempt_at=now() where resource_id=?",abandoned.id());
+        db.update("update cleanup_job set next_attempt_at=timestamp '2020-01-01' where resource_id=?",abandoned.id());
         fileCleanup.runOnce();
 
         var ready = fileService.upload(new org.springframework.mock.web.MockMultipartFile("file","stale.png","image/png",PNG),actor);
@@ -651,7 +854,7 @@ class AssignmentInfrastructureTest {
             fileCleanup.runOnce();
             assertThat(storage.listMultipart(uploading.key(),null,null,100).uploads()).doesNotContain(new ObjectStorage.Multipart(uploading.key(),uploadId));
             storedFiles.acknowledgeUpload(uploading.id(),uploading.uploadToken());
-            db.update("update cleanup_job set next_attempt_at=now() where resource_id=?",uploading.id());
+            db.update("update cleanup_job set next_attempt_at=timestamp '2020-01-01' where resource_id=?",uploading.id());
         }
         storedFiles.delete(ready.id(),actor);
         fileCleanup.runOnce();
@@ -664,11 +867,21 @@ class AssignmentInfrastructureTest {
                 .schemas("files_upgrade").defaultSchema("files_upgrade").target("2").load();
         old.migrate();
         db.update("insert into files_upgrade.topic(subject_id,name) values(1,'Preserved topic')");
+        var stage4=org.flywaydb.core.Flyway.configure().dataSource(postgres.getJdbcUrl(),postgres.getUsername(),postgres.getPassword())
+                .schemas("files_upgrade").defaultSchema("files_upgrade").target("3").load();
+        assertThat(stage4.migrate().migrationsExecuted).isEqualTo(1);
+        UUID image = UUID.randomUUID();
+        db.update("""
+                insert into files_upgrade.stored_file(id,object_key,original_name,mime_type,size_bytes,content_hash,
+                    purpose,state,created_at,expires_at,updated_at)
+                values(?,?,'preserved.png','image/png',12,repeat('a',64),'TASK_IMAGE','READY',now(),now()+interval '1 day',now())
+                """, image, ObjectStorage.newKey());
         var current=org.flywaydb.core.Flyway.configure().dataSource(postgres.getJdbcUrl(),postgres.getUsername(),postgres.getPassword())
                 .schemas("files_upgrade").defaultSchema("files_upgrade").load();
         assertThat(current.migrate().migrationsExecuted).isEqualTo(1);
         assertThat(current.migrate().migrationsExecuted).isZero();
         assertThat(db.queryForObject("select count(*) from files_upgrade.topic where name='Preserved topic'",Integer.class)).isEqualTo(1);
+        assertThat(db.queryForObject("select state from files_upgrade.stored_file where id=?", String.class, image)).isEqualTo("READY");
         assertThatThrownBy(()->db.update("""
                 insert into stored_file(id,object_key,original_name,mime_type,size_bytes,purpose,state,created_at,expires_at,updated_at)
                 values(?,?,'bad.png','image/png',-1,'TASK_IMAGE','READY',now(),now(),now())

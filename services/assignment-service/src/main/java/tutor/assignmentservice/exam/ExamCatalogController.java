@@ -6,6 +6,7 @@ import java.util.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import tutor.assignmentservice.security.CurrentUser;
 import static tutor.assignmentservice.exam.CatalogDtos.*;
 
 @RestController
@@ -58,7 +59,7 @@ public class ExamCatalogController {
     @PostMapping("/exams/{id}/structures")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Structure> structure(@PathVariable UUID id,@Valid @RequestBody StructureCreate request) {
-        var value=catalog.createStructure(id,request);
+        var value=catalog.createStructure(id,request,CurrentUser.get().id());
         return created("/api/v1/exams/"+id+"/structures/"+value.id(),value);
     }
     @GetMapping("/exams/{id}/structures/{version}")

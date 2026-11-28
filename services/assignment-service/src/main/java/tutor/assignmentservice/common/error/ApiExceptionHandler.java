@@ -1,7 +1,7 @@
 package tutor.assignmentservice.common.error;
 
 import jakarta.validation.ConstraintViolationException;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.http.*;
 import org.springframework.security.access.AccessDeniedException;
@@ -14,10 +14,13 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import tutor.assignmentservice.storage.StorageException;
 
 @RestControllerAdvice
+@Slf4j
 public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
     @ExceptionHandler(ApiException.class)
     ResponseEntity<Object> applicationError(ApiException exception) {
-        return response(exception.status(), exception.code(), exception.getMessage());
+        var problem = Problems.body(exception.status(), exception.code(), exception.getMessage());
+        exception.properties().forEach(problem::setProperty);
+        return ResponseEntity.status(exception.status()).cacheControl(CacheControl.noStore()).body(problem);
     }
 
     @ExceptionHandler(AccessDeniedException.class)
@@ -51,7 +54,7 @@ public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     ResponseEntity<Object> unexpectedError(Exception exception) {
-        LoggerFactory.getLogger(ApiExceptionHandler.class).atError().setMessage("Unhandled API error")
+        log.atError().setMessage("Unhandled API error")
                 .addKeyValue("requestId", MDC.get("requestId")).addKeyValue("error", exception.getClass().getSimpleName()).log();
         return response(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_ERROR", "Internal server error");
     }

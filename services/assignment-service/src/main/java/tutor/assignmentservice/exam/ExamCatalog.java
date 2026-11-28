@@ -10,6 +10,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tutor.assignmentservice.bank.TaskBank;
 import tutor.assignmentservice.common.error.ApiException;
 import tutor.assignmentservice.common.pagination.CursorCodec;
 import tutor.assignmentservice.security.CurrentUser;
@@ -21,11 +22,13 @@ public class ExamCatalog {
     private final JdbcTemplate jdbc;
     private final Clock clock;
     private final CursorCodec cursors;
+    private final TaskBank tasks;
 
-    public ExamCatalog(JdbcTemplate jdbc, Clock clock, CursorCodec cursors) {
+    public ExamCatalog(JdbcTemplate jdbc, Clock clock, CursorCodec cursors, TaskBank tasks) {
         this.jdbc = jdbc;
         this.clock = clock;
         this.cursors = cursors;
+        this.tasks = tasks;
     }
 
     public List<Subject> subjects() {
@@ -102,13 +105,15 @@ public class ExamCatalog {
     }
 
     @Transactional
-    public Structure createStructure(UUID examId,StructureCreate input) {
+    public Structure createStructure(UUID examId,StructureCreate input,UUID actor) {
         var current=one(jdbc.query("select current_structure_version_id from exam_definition where id=? for update",
                 (r,i)->r.getObject(1,UUID.class),examId));
         if (!current.equals(input.expectedStructureVersionId())) throw conflict("STRUCTURE_VERSION_CONFLICT");
         int version=jdbc.queryForObject("select version+1 from exam_structure_version where id=?",Integer.class,current);
-        UUID id=writeStructure(examId,version,input.structure());
-        return structure(examId,id);
+        Structure previous=structure(examId,current);
+        Structure next=structure(examId,writeStructure(examId,version,input.structure()));
+        tasks.transferClassification(CompatiblePositions.between(previous,next),actor);
+        return next;
     }
 
     private UUID writeStructure(UUID exam,int version,StructureInput input) {
