@@ -6,6 +6,7 @@ spring:
     username: ${ASSIGNMENT_DB_USER}
     password: ${ASSIGNMENT_DB_PASSWORD}
     hikari:
+      schema: public
       maximum-pool-size: ${ASSIGNMENT_DB_POOL_SIZE:10}
       connection-timeout: 5000
       connection-init-sql: SET TIME ZONE 'UTC'
@@ -16,6 +17,7 @@ spring:
     properties:
       hibernate.jdbc.time_zone: UTC
   flyway:
+    default-schema: public
     clean-disabled: true
   jackson:
     time-zone: UTC
@@ -44,9 +46,19 @@ management:
         liveness:
           include: livenessState
         readiness:
-          # Kafka is intentionally outside readiness because events will be buffered in the outbox.
-          include: readinessState,db,objectStorage
+          # Text operations depend on the DB; overall health also reports storage availability.
+          include: readinessState,db
 assignment:
+  security:
+    public-key-location: ${ASSIGNMENT_JWT_PUBLIC_KEY_LOCATION}
+    issuer: ${JWT_ISSUER:rp-identity}
+  identity:
+    url: ${ASSIGNMENT_IDENTITY_URL}
+    key: ${ASSIGNMENT_IDENTITY_SIGNING_KEY}
+  education:
+    url: ${ASSIGNMENT_EDUCATION_URL}
+    key: ${ASSIGNMENT_EDUCATION_SIGNING_KEY}
+  cursor.key: ${ASSIGNMENT_CURSOR_KEY}
   kafka:
     bootstrap-servers: ${ASSIGNMENT_KAFKA_BOOTSTRAP_SERVERS}
   storage:

@@ -1,10 +1,14 @@
 spring:
+  config.import: optional:file:../../.env[.properties]
   datasource:
     url: ${ASSIGNMENT_DB_URL:jdbc:postgresql://localhost:5434/assignment}
     username: ${ASSIGNMENT_DB_USER:assignment}
 server:
   port: ${ASSIGNMENT_PORT:8082}
 assignment:
+  security.public-key-location: ${ASSIGNMENT_JWT_PUBLIC_KEY_LOCATION:file:../../dev_secrets/jwt_public.pem}
+  identity.url: ${ASSIGNMENT_IDENTITY_URL:http://localhost:8080}
+  education.url: ${ASSIGNMENT_EDUCATION_URL:http://localhost:8081}
   kafka:
     bootstrap-servers: ${ASSIGNMENT_KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
   storage:

@@ -1,0 +1,27 @@
+assignment-1             | 2026-11-28T08:24:13.307Z  INFO 1 --- [assignment-service] [           main] o.f.core.internal.command.DbMigrate      : Successfully applied 1 migration to schema "public", now at version v1 (execution time 00:00.004s)
+assignment-minio-init-1  | /bootstrap.sh: line 62: grep: command not found
+assignment-minio-init-1  | assignment private bucket and restricted S3 user initialized
+assignment-1             | 2026-11-28T08:24:13.418Z  INFO 1 --- [assignment-service] [           main] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+assignment-minio-init-1  | assignment private bucket and restricted S3 user initialized
+assignment-1             | 2026-11-28T08:24:13.470Z  INFO 1 --- [assignment-service] [           main] org.hibernate.orm.core                   : HHH000001: Hibernate ORM core version 7.4.5.Final
+assignment-1             | 2026-11-28T08:24:13.903Z  INFO 1 --- [assignment-service] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+assignment-1             | 2026-11-28T08:24:13.982Z  INFO 1 --- [assignment-service] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+assignment-1             | 	Database JDBC URL [jdbc:postgresql://assignment-postgres:5432/assignment]
+assignment-1             | 	Database driver: PostgreSQL JDBC Driver
+assignment-1             | 	Database dialect: PostgreSQLDialect
+assignment-1             | 	Database version: 17.12
+assignment-1             | 	Default catalog/schema: assignment/public
+assignment-1             | 	Autocommit mode: undefined/unknown
+assignment-1             | 	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+assignment-1             | 	JDBC fetch size: none
+assignment-1             | 	Pool: DataSourceConnectionProvider
+assignment-1             | 	Minimum pool size: undefined/unknown
+assignment-1             | 	Maximum pool size: undefined/unknown
+assignment-1             | 2026-11-28T08:24:14.398Z  INFO 1 --- [assignment-service] [           main] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+assignment-1             | 2026-11-28T08:24:14.435Z  INFO 1 --- [assignment-service] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+assignment-1             | 2026-11-28T08:24:15.424Z  INFO 1 --- [assignment-service] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 1 endpoint beneath base path '/actuator'
+assignment-1             | 2026-11-28T08:24:15.505Z  INFO 1 --- [assignment-service] [           main] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8080 (http) with context path '/'
+assignment-1             | 2026-11-28T08:24:15.522Z  INFO 1 --- [assignment-service] [           main] t.a.AssignmentServiceApplication         : Started AssignmentServiceApplication in 4.965 seconds (process running for 5.499)
+assignment-1             | 2026-11-28T08:24:20.170Z  INFO 1 --- [assignment-service] [nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+assignment-1             | 2026-11-28T08:24:20.170Z  INFO 1 --- [assignment-service] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+assignment-1             | 2026-11-28T08:24:20.171Z  INFO 1 --- [assignment-service] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms

@@ -96,6 +96,7 @@ services:
       EDUCATION_JWT_ISSUER: ${EDUCATION_JWT_ISSUER:-rp-identity}
       EDUCATION_IDENTITY_BASE_URL: ${EDUCATION_IDENTITY_DOCKER_URL:-http://host.docker.internal:8080}
       EDUCATION_CURSOR_KEY: ${EDUCATION_CURSOR_KEY:?set EDUCATION_CURSOR_KEY in .env}
+      ASSIGNMENT_EDUCATION_SIGNING_KEY: ${ASSIGNMENT_EDUCATION_SIGNING_KEY:-}
       EDUCATION_ASSIGNMENT_TOKEN: ${EDUCATION_ASSIGNMENT_TOKEN:-}
       EDUCATION_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       EDUCATION_SCHEDULE_TOPIC: ${EDUCATION_SCHEDULE_TOPIC:-education.schedule.v1}
@@ -169,6 +170,13 @@ services:
     restart: unless-stopped
     environment:
       SPRING_PROFILES_ACTIVE: local
+      ASSIGNMENT_JWT_PUBLIC_KEY_LOCATION: file:/run/keys/identity-public.pem
+      JWT_ISSUER: ${JWT_ISSUER:-rp-identity}
+      ASSIGNMENT_IDENTITY_URL: ${ASSIGNMENT_IDENTITY_DOCKER_URL:-http://host.docker.internal:8080}
+      ASSIGNMENT_EDUCATION_URL: http://education:8080
+      ASSIGNMENT_IDENTITY_SIGNING_KEY: ${ASSIGNMENT_IDENTITY_SIGNING_KEY:-}
+      ASSIGNMENT_EDUCATION_SIGNING_KEY: ${ASSIGNMENT_EDUCATION_SIGNING_KEY:-}
+      ASSIGNMENT_CURSOR_KEY: ${ASSIGNMENT_CURSOR_KEY:-}
       ASSIGNMENT_PORT: 8080
       ASSIGNMENT_DB_URL: jdbc:postgresql://assignment-postgres:5432/assignment
       ASSIGNMENT_DB_USER: ${ASSIGNMENT_DB_USER:-assignment}
@@ -178,6 +186,10 @@ services:
       ASSIGNMENT_S3_ACCESS_KEY: ${ASSIGNMENT_S3_ACCESS_KEY:-}
       ASSIGNMENT_S3_SECRET_KEY: ${ASSIGNMENT_S3_SECRET_KEY:-}
       ASSIGNMENT_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    volumes:
+      - ../../dev_secrets/jwt_public.pem:/run/keys/identity-public.pem:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "127.0.0.1:${ASSIGNMENT_PORT:-8082}:8080"
     depends_on:

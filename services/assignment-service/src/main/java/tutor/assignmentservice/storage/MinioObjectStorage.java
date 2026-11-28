@@ -30,6 +30,7 @@ final class MinioObjectStorage implements ObjectStorage {
                 throw new IllegalArgumentException("Invalid object metadata");
             }
             client.putObject(PutObjectArgs.builder().bucket(bucket).object(key)
+                    .headers(java.util.Map.of("If-None-Match", "*"))
                     .stream(stream, size, size == -1 ? PART_SIZE : -1).contentType(contentType).build());
         } catch (IllegalArgumentException exception) {
             throw exception;
@@ -81,6 +82,7 @@ final class MinioObjectStorage implements ObjectStorage {
     private static StorageException translate(Exception exception) {
         if (exception instanceof ErrorResponseException response) {
             String code = response.errorResponse().code();
+            if ("PreconditionFailed".equals(code) || "ConditionalRequestConflict".equals(code)) return new StorageException(StorageException.Reason.ALREADY_EXISTS);
             if ("NoSuchKey".equals(code) || "NoSuchObject".equals(code)) {
                 return new StorageException(StorageException.Reason.NOT_FOUND);
             }

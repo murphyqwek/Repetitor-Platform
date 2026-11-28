@@ -1,0 +1,48 @@
+ M .env.example
+ M Docker/local/compose.yml
+ M services/assignment-service/src/main/java/tutor/assignmentservice/AssignmentServiceApplication.java
+ M services/assignment-service/src/main/java/tutor/assignmentservice/security/SecurityConfiguration.java
+ M services/assignment-service/src/main/java/tutor/assignmentservice/storage/MinioObjectStorage.java
+ M services/assignment-service/src/main/java/tutor/assignmentservice/storage/StorageException.java
+ M services/assignment-service/src/main/resources/application-local.yaml
+ M services/assignment-service/src/main/resources/application.yaml
+ M services/assignment-service/src/test/java/tutor/assignmentservice/storage/AssignmentInfrastructureTest.java
+ M services/education-service/src/test/java/tutor/educationservice/EducationContextTest.java
+ M services/identity-service/src/main/java/tutor/identityservice/service/JwtService.java
+ M services/identity-service/src/test/java/tutor/identityservice/IdentityServiceApplicationTests.java
+?? "docs/\320\260\321\200\321\202\320\265\321\204\320\260\320\272\321\202\321\213/assignment-service/stages-1-2-files.log"
+?? "docs/\320\260\321\200\321\202\320\265\321\204\320\260\320\272\321\202\321\213/assignment-service/stages-1-2-tests.log"
+?? "docs/\320\260\321\200\321\202\320\265\321\204\320\260\320\272\321\202\321\213/assignment-service/stages-1-2-verification.md"
+?? "docs/\320\260\321\200\321\202\320\265\321\204\320\260\320\272\321\202\321\213/assignment-service/startup.log"
+?? services/assignment-service/README.md
+?? services/assignment-service/src/main/java/tutor/assignmentservice/analytics/package-info.java
+?? services/assignment-service/src/main/java/tutor/assignmentservice/assignment/package-info.java
+?? services/assignment-service/src/main/java/tutor/assignmentservice/bank/package-info.java
+?? services/assignment-service/src/main/java/tutor/assignmentservice/common/error/ApiException.java
+?? services/assignment-service/src/main/java/tutor/assignmentservice/common/error/ApiExceptionHandler.java
+?? services/assignment-service/src/main/java/tutor/assignmentservice/common/error/Problems.java
+?? services/assignment-service/src/main/java/tutor/assignmentservice/common/pagination/CursorCodec.java
+?? services/assignment-service/src/main/java/tutor/assignmentservice/common/pagination/CursorProperties.java
+?? services/assignment-service/src/main/java/tutor/assignmentservice/exam/package-info.java
+?? services/assignment-service/src/main/java/tutor/assignmentservice/imports/package-info.java
+?? services/assignment-service/src/main/java/tutor/assignmentservice/integration/ProviderHttp.java
+?? services/assignment-service/src/main/java/tutor/assignmentservice/integration/education/EducationClient.java
+?? services/assignment-service/src/main/java/tutor/assignmentservice/integration/identity/IdentityClient.java
+?? services/assignment-service/src/main/java/tutor/assignmentservice/outbox/package-info.java
+?? services/assignment-service/src/main/java/tutor/assignmentservice/practice/package-info.java
+?? services/assignment-service/src/main/java/tutor/assignmentservice/review/package-info.java
+?? services/assignment-service/src/main/java/tutor/assignmentservice/security/CurrentUser.java
+?? services/assignment-service/src/main/java/tutor/assignmentservice/security/IdentityAccessFilter.java
+?? services/assignment-service/src/main/java/tutor/assignmentservice/security/IdentityAuthentication.java
+?? services/assignment-service/src/main/java/tutor/assignmentservice/security/JwtConfiguration.java
+?? services/assignment-service/src/main/java/tutor/assignmentservice/security/Role.java
+?? services/assignment-service/src/main/java/tutor/assignmentservice/storage/FileDownload.java
+?? services/assignment-service/src/main/java/tutor/assignmentservice/submission/package-info.java
+?? services/assignment-service/src/test/java/tutor/assignmentservice/ProviderStub.java
+?? services/assignment-service/src/test/java/tutor/assignmentservice/TestJwt.java
+?? services/education-service/src/main/java/tutor/educationservice/integration/assignment/AssignmentRecipientsController.java
+?? services/education-service/src/main/java/tutor/educationservice/security/AssignmentServiceJwtSecurity.java
+?? services/education-service/src/test/java/tutor/educationservice/AssignmentCredential.java
+?? services/identity-service/src/main/java/tutor/identityservice/controller/InternalUsersController.java
+?? services/identity-service/src/main/java/tutor/identityservice/security/AssignmentServiceJwtSecurity.java
+?? services/identity-service/src/test/java/tutor/identityservice/AssignmentCredential.java

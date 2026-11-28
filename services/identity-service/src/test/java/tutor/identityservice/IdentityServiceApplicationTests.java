@@ -36,6 +36,7 @@ class IdentityServiceApplicationTests {
 
     @DynamicPropertySource
     static void testSettings(DynamicPropertyRegistry properties) throws Exception {
+        properties.add("ASSIGNMENT_IDENTITY_SIGNING_KEY", AssignmentCredential::encoded);
         var generator = KeyPairGenerator.getInstance("RSA");
         generator.initialize(2048);
         var pair = generator.generateKeyPair();
@@ -60,6 +61,45 @@ class IdentityServiceApplicationTests {
     static String pem(String type, byte[] bytes) {
         return "-----BEGIN " + type + "-----\n" + Base64.getMimeEncoder(64, new byte[]{10}).encodeToString(bytes)
                 + "\n-----END " + type + "-----\n";
+    }
+
+    @Test
+    void assignmentDirectoryUsesServiceAudienceScopeAndOneCompleteBatch() throws Exception {
+        var id = new TransactionTemplate(transactionManager).execute(s -> account(Role.TEACHER).getId());
+        var missing = UUID.randomUUID();
+        var uri = java.net.URI.create("http://localhost:" + port + "/internal/v1/users/");
+        var client = java.net.http.HttpClient.newHttpClient();
+        String body = "{\"userIds\":[\"" + id + "\",\"" + id + "\",\"" + missing + "\"]}";
+        var request = java.net.http.HttpRequest.newBuilder(uri.resolve("batch")).header("Content-Type", "application/json")
+                .POST(java.net.http.HttpRequest.BodyPublishers.ofString(body));
+        var batch = client.send(request.setHeader("Authorization", "Bearer " + AssignmentCredential.valid()).build(),
+                java.net.http.HttpResponse.BodyHandlers.ofString());
+        assertEquals(200, batch.statusCode(), batch.body());
+        assertTrue(batch.body().contains("\"profileCompleted\":true"));
+        assertTrue(batch.body().contains("\"missingUserIds\":[\"" + missing + "\"]"));
+        assertFalse(batch.body().contains("login"));
+        assertFalse(batch.body().contains("password"));
+        for (var token : List.of(jwt.generateToken(id, Set.of(Role.ADMIN)),
+                AssignmentCredential.token("education-service", "users:read", "SERVICE"),
+                AssignmentCredential.token("identity-service", "users:read", "USER"))) {
+            assertEquals(401, client.send(request.setHeader("Authorization", "Bearer " + token).build(),
+                    java.net.http.HttpResponse.BodyHandlers.discarding()).statusCode());
+        }
+        assertEquals(403, client.send(request.setHeader("Authorization", "Bearer " +
+                AssignmentCredential.token("identity-service", "other", "SERVICE")).build(),
+                java.net.http.HttpResponse.BodyHandlers.discarding()).statusCode());
+        request.setHeader("Authorization", "Bearer " + AssignmentCredential.valid());
+        var ids = new ArrayList<UUID>();
+        for (int i=0; i<501; i++) ids.add(UUID.randomUUID());
+        var mapper = new tools.jackson.databind.json.JsonMapper();
+        for (int count : List.of(500,501)) {
+            request.POST(java.net.http.HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(Map.of("userIds", ids.subList(0,count)))));
+            var res = client.send(request.build(), java.net.http.HttpResponse.BodyHandlers.ofString());
+            assertEquals(count == 500 ? 200 : 422, res.statusCode(), res.body());
+            if (count == 500) assertEquals(500, mapper.readTree(res.body()).path("missingUserIds").size());
+        }
+        assertEquals(404, client.send(request.uri(uri.resolve(missing.toString())).GET().build(),
+                java.net.http.HttpResponse.BodyHandlers.discarding()).statusCode());
     }
 
     @Test
