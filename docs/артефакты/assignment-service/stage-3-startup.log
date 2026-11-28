@@ -1,0 +1,15 @@
+assignment-1  | 	Default catalog/schema: assignment/public
+assignment-1  | 	Autocommit mode: undefined/unknown
+assignment-1  | 	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+assignment-1  | 	JDBC fetch size: none
+assignment-1  | 	Pool: DataSourceConnectionProvider
+assignment-1  | 	Minimum pool size: undefined/unknown
+assignment-1  | 	Maximum pool size: undefined/unknown
+assignment-1  | 2026-11-28T08:33:59.247Z  INFO 1 --- [assignment-service] [           main] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+assignment-1  | 2026-11-28T08:33:59.278Z  INFO 1 --- [assignment-service] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+assignment-1  | 2026-11-28T08:34:00.366Z  INFO 1 --- [assignment-service] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 1 endpoint beneath base path '/actuator'
+assignment-1  | 2026-11-28T08:34:00.461Z  INFO 1 --- [assignment-service] [           main] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8080 (http) with context path '/'
+assignment-1  | 2026-11-28T08:34:00.475Z  INFO 1 --- [assignment-service] [           main] t.a.AssignmentServiceApplication         : Started AssignmentServiceApplication in 4.761 seconds (process running for 5.223)
+assignment-1  | 2026-11-28T08:34:05.393Z  INFO 1 --- [assignment-service] [nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+assignment-1  | 2026-11-28T08:34:05.393Z  INFO 1 --- [assignment-service] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+assignment-1  | 2026-11-28T08:34:05.395Z  INFO 1 --- [assignment-service] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms

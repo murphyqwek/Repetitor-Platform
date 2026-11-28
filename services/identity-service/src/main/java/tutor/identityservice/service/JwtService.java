@@ -31,6 +31,7 @@ public class JwtService {
         var claims = JwtClaimsSet.builder()
                 .issuer(issuer)
                 .subject(userId.toString())
+                .audience(java.util.List.of("assignment-service", "education-service", "identity-service"))
                 .issuedAt(now)
                 .expiresAt(now.plus(ttl))
                 .id(UUID.randomUUID().toString())

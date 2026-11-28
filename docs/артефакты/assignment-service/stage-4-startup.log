@@ -1,0 +1,49 @@
+assignment-1  | Picked up JAVA_TOOL_OPTIONS: -Duser.timezone=UTC
+assignment-1  | 
+assignment-1  |   .   ____          _            __ _ _
+assignment-1  |  /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+assignment-1  | ( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+assignment-1  |  \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+assignment-1  |   '  |____| .__|_| |_|_| |_\__, | / / / /
+assignment-1  |  =========|_|==============|___/=/_/_/_/
+assignment-1  | 
+assignment-1  |  :: Spring Boot ::                (v4.1.1)
+assignment-1  | 
+assignment-1  | 2026-11-28T09:00:57.674Z  INFO 1 --- [assignment-service] [           main] t.a.AssignmentServiceApplication         : Starting AssignmentServiceApplication v0.0.1-SNAPSHOT using Java 17.0.21 with PID 1 (/app/app.jar started by ? in /app)
+assignment-1  | 2026-11-28T09:00:57.677Z  INFO 1 --- [assignment-service] [           main] t.a.AssignmentServiceApplication         : The following 1 profile is active: "local"
+assignment-1  | 2026-11-28T09:00:58.327Z  INFO 1 --- [assignment-service] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+assignment-1  | 2026-11-28T09:00:58.348Z  INFO 1 --- [assignment-service] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 13 ms. Found 0 JPA repository interfaces.
+assignment-1  | 2026-11-28T09:00:58.877Z  INFO 1 --- [assignment-service] [           main] o.s.boot.tomcat.TomcatWebServer          : Tomcat initialized with port 8080 (http)
+assignment-1  | 2026-11-28T09:00:58.888Z  INFO 1 --- [assignment-service] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+assignment-1  | 2026-11-28T09:00:58.888Z  INFO 1 --- [assignment-service] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/11.0.24]
+assignment-1  | 2026-11-28T09:00:58.912Z  INFO 1 --- [assignment-service] [           main] b.w.c.s.WebApplicationContextInitializer : Root WebApplicationContext: initialization completed in 1194 ms
+assignment-1  | 2026-11-28T09:00:59.193Z  INFO 1 --- [assignment-service] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+assignment-1  | 2026-11-28T09:00:59.310Z  INFO 1 --- [assignment-service] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@1cc9bd9b
+assignment-1  | 2026-11-28T09:00:59.313Z  INFO 1 --- [assignment-service] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+assignment-1  | 2026-11-28T09:00:59.332Z  INFO 1 --- [assignment-service] [           main] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://assignment-postgres:5432/assignment (PostgreSQL 17.12)
+assignment-1  | 2026-11-28T09:00:59.376Z  INFO 1 --- [assignment-service] [           main] o.f.core.internal.command.DbValidate     : Successfully validated 3 migrations (execution time 00:00.017s)
+assignment-1  | 2026-11-28T09:00:59.408Z  INFO 1 --- [assignment-service] [           main] o.f.core.internal.command.DbMigrate      : Current version of schema "public": 3
+assignment-1  | 2026-11-28T09:00:59.410Z  INFO 1 --- [assignment-service] [           main] o.f.core.internal.command.DbMigrate      : Schema "public" is up to date. No migration necessary.
+assignment-1  | 2026-11-28T09:00:59.481Z  INFO 1 --- [assignment-service] [           main] org.hibernate.orm.jpa                    : HHH008540: Processing PersistenceUnitInfo [name: default]
+assignment-1  | 2026-11-28T09:00:59.517Z  INFO 1 --- [assignment-service] [           main] org.hibernate.orm.core                   : HHH000001: Hibernate ORM core version 7.4.5.Final
+assignment-1  | 2026-11-28T09:00:59.777Z  INFO 1 --- [assignment-service] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+assignment-1  | 2026-11-28T09:00:59.828Z  INFO 1 --- [assignment-service] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+assignment-1  | 	Database JDBC URL [jdbc:postgresql://assignment-postgres:5432/assignment]
+assignment-1  | 	Database driver: PostgreSQL JDBC Driver
+assignment-1  | 	Database dialect: PostgreSQLDialect
+assignment-1  | 	Database version: 17.12
+assignment-1  | 	Default catalog/schema: assignment/public
+assignment-1  | 	Autocommit mode: undefined/unknown
+assignment-1  | 	Isolation level: READ_COMMITTED [default READ_COMMITTED]
+assignment-1  | 	JDBC fetch size: none
+assignment-1  | 	Pool: DataSourceConnectionProvider
+assignment-1  | 	Minimum pool size: undefined/unknown
+assignment-1  | 	Maximum pool size: undefined/unknown
+assignment-1  | 2026-11-28T09:01:00.125Z  INFO 1 --- [assignment-service] [           main] org.hibernate.orm.core                   : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+assignment-1  | 2026-11-28T09:01:00.154Z  INFO 1 --- [assignment-service] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+assignment-1  | 2026-11-28T09:01:01.010Z  INFO 1 --- [assignment-service] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 1 endpoint beneath base path '/actuator'
+assignment-1  | 2026-11-28T09:01:01.065Z  INFO 1 --- [assignment-service] [           main] o.s.boot.tomcat.TomcatWebServer          : Tomcat started on port 8080 (http) with context path '/'
+assignment-1  | 2026-11-28T09:01:01.075Z  INFO 1 --- [assignment-service] [           main] t.a.AssignmentServiceApplication         : Started AssignmentServiceApplication in 3.822 seconds (process running for 4.289)
+assignment-1  | 2026-11-28T09:01:01.894Z  INFO 1 --- [assignment-service] [nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+assignment-1  | 2026-11-28T09:01:01.894Z  INFO 1 --- [assignment-service] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+assignment-1  | 2026-11-28T09:01:01.896Z  INFO 1 --- [assignment-service] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms

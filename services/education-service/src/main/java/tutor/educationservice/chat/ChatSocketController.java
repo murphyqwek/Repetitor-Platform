@@ -1,8 +1,7 @@
 package tutor.educationservice.chat;
 
 import java.util.UUID;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.handler.annotation.*;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
@@ -11,8 +10,8 @@ import tools.jackson.databind.ObjectMapper;
 import tutor.educationservice.common.error.ApiException;
 
 @Controller
+@Slf4j
 class ChatSocketController {
-    private static final Logger log = LoggerFactory.getLogger(ChatSocketController.class);
     record Accepted(String type, UUID courseId, UUID clientMessageId, UUID messageId) {}
     record Rejected(String type, UUID courseId, UUID clientMessageId, String code, String message) {}
     record Created(String type, UUID courseId, ChatMessage message) {}

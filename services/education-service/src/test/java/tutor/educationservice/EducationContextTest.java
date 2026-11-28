@@ -37,6 +37,7 @@ class EducationContextTest {
     @DynamicPropertySource
     static void properties(DynamicPropertyRegistry registry) {
         TestJwt.properties(registry);
+        registry.add("ASSIGNMENT_EDUCATION_SIGNING_KEY", AssignmentCredential::encoded);
         registry.add("spring.datasource.url", POSTGRES::getJdbcUrl);
         registry.add("spring.datasource.username", POSTGRES::getUsername);
         registry.add("spring.datasource.password", POSTGRES::getPassword);
@@ -145,6 +146,50 @@ class EducationContextTest {
         assertThat(readiness.statusCode()).isEqualTo(503);
         assertThat(readiness.body()).contains("DOWN").doesNotContain("private-test-secret");
         assertThat(http("/actuator/health/liveness").statusCode()).isEqualTo(200);
+    }
+
+    @Test
+    void assignmentResolveAndMembershipUseCurrentOwnedActiveCourses() throws Exception {
+        var teacher = java.util.UUID.randomUUID();
+        var student = java.util.UUID.randomUUID();
+        var stranger = java.util.UUID.randomUUID();
+        var c1 = java.util.UUID.randomUUID();
+        var c2 = java.util.UUID.randomUUID();
+        var deleted = java.util.UUID.randomUUID();
+        var foreign = java.util.UUID.randomUUID();
+        for (var id : java.util.List.of(c1,c2,deleted,foreign)) {
+            jdbc.update("insert into course(id,teacher_id,title,deletion_state,created_at) values(?,?,'Math',?,now())",
+                    id, id.equals(foreign) ? stranger : teacher, id.equals(deleted) ? "DELETING" : "ACTIVE");
+            jdbc.update("insert into course_student(course_id,student_id,enrolled_at) values(?,?,now())", id, student);
+        }
+        var json = new tools.jackson.databind.json.JsonMapper();
+        var client = HttpClient.newHttpClient();
+        var request = HttpRequest.newBuilder(URI.create("http://localhost:" + port + "/internal/v1/assignment-recipients/resolve"))
+                .header("Content-Type","application/json").POST(HttpRequest.BodyPublishers.ofString(json.writeValueAsString(
+                        java.util.Map.of("teacherId", teacher, "studentIds", java.util.List.of(student,stranger),
+                        "courseIds", java.util.List.of(c1,c2,deleted,foreign)))));
+        var response = client.send(request.setHeader("Authorization","Bearer " + AssignmentCredential.valid()).build(),
+                HttpResponse.BodyHandlers.ofString());
+        assertThat(response.statusCode()).as(response.body()).isEqualTo(200);
+        var snapshot = json.readTree(response.body());
+        assertThat(snapshot.path("recipients").size()).isEqualTo(1);
+        assertThat(snapshot.path("recipients").get(0).path("courseIds").size()).isEqualTo(2);
+        assertThat(snapshot.path("recipients").get(0).path("selectedIndividually").asBoolean()).isTrue();
+        assertThat(snapshot.path("ineligibleStudentIds").toString()).contains(stranger.toString());
+        assertThat(snapshot.path("invalidCourseIds").toString()).contains(deleted.toString(),foreign.toString());
+        var membership = URI.create("http://localhost:" + port + "/internal/v1/teachers/" + teacher + "/students/" + student + "/membership");
+        request.GET().uri(membership);
+        assertThat(client.send(request.build(), HttpResponse.BodyHandlers.ofString()).body()).contains("\"enrolled\":true");
+        jdbc.update("delete from course_student where course_id in (?,?)",c1,c2);
+        assertThat(client.send(request.build(), HttpResponse.BodyHandlers.ofString()).body()).contains("\"enrolled\":false");
+        jdbc.update("insert into course_student(course_id,student_id,enrolled_at) values(?,?,now())", c2, student);
+        assertThat(client.send(request.build(), HttpResponse.BodyHandlers.ofString()).body()).contains("\"enrolled\":true");
+        jdbc.update("update course set deletion_state='DELETING' where id=?",c2);
+        assertThat(client.send(request.build(), HttpResponse.BodyHandlers.ofString()).body()).contains("\"enrolled\":false");
+        assertThat(client.send(request.setHeader("Authorization","Bearer " + AssignmentCredential.token(
+                "education-service","users:read","SERVICE")).build(), HttpResponse.BodyHandlers.discarding()).statusCode()).isEqualTo(403);
+        assertThat(client.send(request.setHeader("Authorization","Bearer " + TestJwt.token(java.util.List.of("ADMIN"))).build(),
+                HttpResponse.BodyHandlers.discarding()).statusCode()).isEqualTo(401);
     }
 
     private HttpResponse<String> http(String path) throws Exception {

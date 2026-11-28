@@ -1,0 +1,20 @@
+Selected failure excerpts from actual verification runs. Synthetic test object IDs omitted.
+
+Initial migration regression
+12 tests completed, 1 failed
+migratesV1WithoutLosingDataAndChecksSqlConstraints() FAILED
+The old assertion expected 10 domain tables. V3 adds 2 tables. Updated expectation to 12 and added V2-to-V3 preservation test.
+
+Fault-injection setup
+IllegalArgumentException: Please don't pass mock here. Spy is not allowed on mock.
+Replaced nested spies with independent adapters connected to the real test S3.
+
+Multipart compatibility
+ListMultipartUploads prefix files/ returned [].
+Using the exact key revealed XmlParserException in the SDK Upload DTO.
+A minimal XML projection using the signed SDK request passed the exact-key list and real abort tests.
+
+Container scheduler before the transport retry fix
+2026-11-28T08:59:15.221Z WARN Object storage request failed, operation=list, error=EOFException, code=-, at=okio.RealBufferedSource.readUtf8LineStrict(RealBufferedSource.kt:362)
+2026-11-28T08:59:15.222Z WARN File maintenance pass failed, error=StorageException
+Added one read-only page retry for transport errors. The regression tests verify successful recovery, a maximum of two attempts, and no retry for other error classes.
